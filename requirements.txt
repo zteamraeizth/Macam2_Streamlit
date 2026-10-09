@@ -7,3 +7,4 @@ qrcode
 Pillow
 pypdf
 opencv-python-headless
+reportlab
