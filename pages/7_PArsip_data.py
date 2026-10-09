@@ -1,16 +1,9 @@
-import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
 
-# 1. Inisialisasi GUI untuk pilih file
 root = tk.Tk()
 root.withdraw()
-
-# 2. Pilih File Excel Input
-file_path = filedialog.askopenfilename(
-    title="Pilih File Excel Input",
-    filetypes=[("Excel Files", "*.xlsx *.xls")]
-)
+file_path = filedialog.askopenfilename()
 
 if not file_path:
     print("Proses dibatalkan, tidak ada file input yang dipilih.")
