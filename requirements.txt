@@ -6,3 +6,4 @@ pdfplumber
 qrcode
 Pillow
 pypdf
+opencv-python-headless
