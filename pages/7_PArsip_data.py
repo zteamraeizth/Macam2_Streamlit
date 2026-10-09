@@ -1,9 +1,9 @@
-import tkinter as tk
-from tkinter import filedialog
+import streamlit as st
 
-root = tk.Tk()
-root.withdraw()
-file_path = filedialog.askopenfilename()
+uploaded_file = st.file_uploader("Pilih file data", type=["xlsx", "csv", "pdf"])
+if uploaded_file is not None:
+    # Proses file Anda di sini
+    pass
 
 if not file_path:
     print("Proses dibatalkan, tidak ada file input yang dipilih.")
