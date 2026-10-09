@@ -8,3 +8,4 @@ Pillow
 PdfWriter
 PdfReader
 cv2
+pypdf
