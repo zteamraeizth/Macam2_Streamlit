@@ -5,7 +5,4 @@ PyMuPDF
 pdfplumber
 qrcode
 Pillow
-PdfWriter
-PdfReader
-cv2
 pypdf
