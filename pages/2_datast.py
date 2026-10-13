@@ -119,9 +119,9 @@ def extract_surat_tugas_data(pdf_file):
         "Hari": hari,
         "Tanggal Pelaksanaan": tanggal,
         "Waktu": waktu,
-        "Tempat": tempat,
         "Agenda": agenda,
         "Tanggal Surat": tanggal_surat,
+        "Tempat": tempat,
     }
 
 
