@@ -38,11 +38,10 @@ dpp_nilai_lain = 0.0
 nilai_ppn = 0.0
 
 if is_ppn == "Ya":
-    # Jika tagihan sudah termasuk PPN (Inclusive):
-    # DPP Murni = Total Tagihan / 1.12
-    # DPP Nilai Lain PPN = (11/12) * Total Tagihan
-    # PPN = 12% * DPP Nilai Lain
-    dpp_murni = total_tagihan / 1.12
+    # Berdasarkan PPN 12% dengan DPP Nilai Lain (11/12):
+    # PPN Efektif = 12% * (11/12) * Total Tagihan = 11% * Total Tagihan
+    # Maka DPP Murni (sebelum PPN) = Total Tagihan / 1.11
+    dpp_murni = total_tagihan / 1.11
     dpp_nilai_lain = (11 / 12) * total_tagihan
     nilai_ppn = 0.12 * dpp_nilai_lain
 else:
@@ -108,10 +107,12 @@ st.markdown("---")
 # ---------------------------------------------------------
 # KALKULASI BERSIH & REKONSILIASI
 # ---------------------------------------------------------
-nilai_bersih = total_tagihan - nilai_pph
+# Nilai Bersih yang dibayarkan = Total Tagihan - Potongan PPh - Nilai PPN
+# (Atau jika PPN dibayarkan terpisah, disesuaikan dengan skema pembayarnya)
+nilai_bersih = total_tagihan - nilai_pph - nilai_ppn
 
-# Check Balance: Total Tagihan = Nilai Bersih + Nilai PPh
-total_sistem = nilai_bersih + nilai_pph
+# Check Balance: Total Tagihan = Nilai Bersih + Nilai PPh + Nilai PPN
+total_sistem = nilai_bersih + nilai_pph + nilai_ppn
 selisih = abs(total_tagihan - total_sistem)
 status_match = "✅ MATCH" if selisih < 0.01 else f"❌ MISMATCH (Selisih: Rp {selisih:,.2f})"
 
@@ -131,12 +132,12 @@ data_rincian = {
         "💰 Nilai Total Bersih (Dibayarkan)"
     ],
     "Keterangan / Tarif": [
-        "Nilai Awal Tagihan",
-        "Tagihan ÷ 1.12" if is_ppn == "Ya" else "Sama dengan Tagihan",
+        "Nilai Kotor Awal",
+        "Tagihan ÷ 1.11" if is_ppn == "Ya" else "Sama dengan Tagihan",
         "11/12 × Tagihan" if is_ppn == "Ya" else "Tidak ada PPN",
-        "12% × DPP Nilai Lain" if is_ppn == "Ya" else "0%",
-        f"Tarif: {tarif_pph*100:.2f}%" if is_pph == "Ya" else "0%",
-        "Total Tagihan - Potongan PPh"
+        "12% × DPP Nilai Lain (11% Efektif)" if is_ppn == "Ya" else "0%",
+        f"Tarif: {tarif_pph*100:.2f}% × DPP Murni" if is_pph == "Ya" else "0%",
+        "Total Tagihan - PPh - PPN"
     ],
     "Nilai (Rp)": [
         f"Rp {total_tagihan:,.2f}",
@@ -155,10 +156,14 @@ st.markdown("---")
 
 # Tabel Check Balance
 st.subheader("🔄 Tabel Pencocokan Sistem (Check Balance)")
-st.caption("Formula: Nilai Total Tagihan = Nilai Bersih + Nilai PPh")
+st.caption("Formula: Nilai Total Tagihan = Nilai Bersih + Nilai PPh + Nilai PPN")
 
 data_check = {
-    "Parameter": ["Total Tagihan Input", "Total Kalkulasi Sistem (Bersih + PPh)", "Status Pencocokan"],
+    "Parameter": [
+        "Total Tagihan Input", 
+        "Total Kalkulasi Sistem (Bersih + PPh + PPN)", 
+        "Status Pencocokan"
+    ],
     "Nilai / Hasil": [
         f"Rp {total_tagihan:,.2f}",
         f"Rp {total_sistem:,.2f}",
