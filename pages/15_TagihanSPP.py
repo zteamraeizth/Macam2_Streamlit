@@ -9,16 +9,16 @@ st.set_page_config(
 )
 
 st.title("🧮 Simulasi Pembayaran & Pemotongan Pajak")
-st.caption("Perhitungan DPP Murni (PPh), PPN 12% (DPP Nilai Lain 11/12), dan Nilai Bersih")
+st.caption("Hitung Otomatis PPN 12% (DPP Nilai Lain), PPh, Total Tagihan Kotor, dan Nilai Bersih")
 
 st.markdown("---")
 
 # ---------------------------------------------------------
 # INPUT UTAMA
 # ---------------------------------------------------------
-st.subheader("1. Input Nilai Tagihan")
-total_tagihan = st.number_input(
-    "Masukkan Nilai Total Tagihan / Nilai Kotor (Rp):",
+st.subheader("1. Input Nilai DPP Murni")
+dpp_murni = st.number_input(
+    "Masukkan Nilai DPP Murni (Dasar Pengenaan Pajak) (Rp):",
     min_value=0.0,
     value=10000000.0,
     step=100000.0,
@@ -33,23 +33,21 @@ st.markdown("---")
 st.subheader("2. Pengaturan PPN")
 is_ppn = st.radio("Apakah Transaksi Dikenakan PPN?", ["Tidak", "Ya"], horizontal=True)
 
-dpp_murni = 0.0
 dpp_nilai_lain = 0.0
 nilai_ppn = 0.0
 
 if is_ppn == "Ya":
-    # 1. DPP Nilai Lain (11/12 dari Tagihan)
-    dpp_nilai_lain = (11 / 12) * total_tagihan
-    
-    # 2. PPN = 12% x DPP Nilai Lain (Efektif 11% dari Total Tagihan)
+    # Jika PPN Aktif:
+    # DPP Nilai Lain = (11/12) dari DPP Murni
+    # PPN = 12% x DPP Nilai Lain (Efektif 11% dari DPP Murni)
+    dpp_nilai_lain = (11 / 12) * dpp_murni
     nilai_ppn = 0.12 * dpp_nilai_lain
-    
-    # 3. DPP Murni (Dasar Hitung PPh) = Total Tagihan - Nilai PPN
-    dpp_murni = total_tagihan - nilai_ppn
 else:
-    dpp_murni = total_tagihan
     dpp_nilai_lain = 0.0
     nilai_ppn = 0.0
+
+# Total Tagihan Kotor = DPP Murni + Nilai PPN
+total_tagihan = dpp_murni + nilai_ppn
 
 # ---------------------------------------------------------
 # OPSI PPh
@@ -101,7 +99,7 @@ if is_pph == "Ya":
             tarif_pph *= 2.0
             st.warning("⚠️ Tarif naik 100% (2x lipat) karena tidak memiliki NPWP.")
 
-    # PPh dihitung dari DPP Murni
+    # PPh dihitung langsung dari DPP Murni
     nilai_pph = dpp_murni * tarif_pph
 
 st.markdown("---")
@@ -109,10 +107,11 @@ st.markdown("---")
 # ---------------------------------------------------------
 # KALKULASI BERSIH & REKONSILIASI
 # ---------------------------------------------------------
-# Nilai Bersih yang dibayarkan = Total Tagihan - Potongan PPh - Nilai PPN
+# Nilai Bersih yang dibayarkan ke Vendor = Total Tagihan - Potongan PPh - Nilai PPN (jika PPN disetor terpisah)
+# Atau Nilai Bersih = DPP Murni - Potongan PPh
 nilai_bersih = total_tagihan - nilai_pph - nilai_ppn
 
-# Check Balance: Total Tagihan = Nilai Bersih + Nilai PPh + Nilai PPN
+# Check Balance: Total Tagihan Kotor = Nilai Bersih + Nilai PPh + Nilai PPN
 total_sistem = nilai_bersih + nilai_pph + nilai_ppn
 selisih = abs(total_tagihan - total_sistem)
 status_match = "✅ MATCH" if selisih < 0.01 else f"❌ MISMATCH (Selisih: Rp {selisih:,.2f})"
@@ -125,26 +124,26 @@ st.subheader("📊 Tabel Rincian Pembayaran")
 # Data Rincian Utama
 data_rincian = {
     "Komponen Perhitungan": [
-        "Nilai Total Tagihan (Kotor)",
+        "DPP Murni (Input)",
         "DPP Nilai Lain (11/12)",
         "Nilai PPN (12%)",
-        "DPP Murni (Dasar PPh)",
+        "Nilai Total Tagihan (Kotor)",
         f"Potongan PPh ({jenis_pph if is_pph == 'Ya' else 'Tanpa PPh'})",
         "💰 Nilai Total Bersih (Dibayarkan)"
     ],
     "Keterangan / Rumus": [
-        "Nilai Tagihan Awal",
-        "11/12 × Total Tagihan" if is_ppn == "Ya" else "Tidak Ada PPN",
-        "12% × DPP Nilai Lain" if is_ppn == "Ya" else "0%",
-        "Total Tagihan - Nilai PPN" if is_ppn == "Ya" else "Sama Dengan Total Tagihan",
+        "Nilai Dasar Pengenaan Pajak",
+        "11/12 × DPP Murni" if is_ppn == "Ya" else "Tidak Ada PPN",
+        "12% × DPP Nilai Lain (11% Efektif)" if is_ppn == "Ya" else "0%",
+        "DPP Murni + Nilai PPN",
         f"Tarif: {tarif_pph*100:.2f}% × DPP Murni" if is_pph == "Ya" else "0%",
         "Total Tagihan - PPh - PPN"
     ],
     "Nilai (Rp)": [
-        f"Rp {total_tagihan:,.2f}",
+        f"Rp {dpp_murni:,.2f}",
         f"Rp {dpp_nilai_lain:,.2f}",
         f"Rp {nilai_ppn:,.2f}",
-        f"Rp {dpp_murni:,.2f}",
+        f"Rp {total_tagihan:,.2f}",
         f"Rp {nilai_pph:,.2f}",
         f"Rp {nilai_bersih:,.2f}"
     ]
@@ -157,12 +156,12 @@ st.markdown("---")
 
 # Tabel Check Balance
 st.subheader("🔄 Tabel Pencocokan Sistem (Check Balance)")
-st.caption("Formula: Nilai Total Tagihan = Nilai Bersih + Nilai PPh + Nilai PPN")
+st.caption("Formula: Nilai Total Tagihan Kotor = Nilai Bersih + Nilai PPh + Nilai PPN")
 
 data_check = {
     "Parameter": [
-        "Total Tagihan Input", 
-        "Total Kalkulasi Sistem (Bersih + PPh + PPN)", 
+        "Total Tagihan Kotor (Sistem)", 
+        "Total Kalkulasi (Bersih + PPh + PPN)", 
         "Status Pencocokan"
     ],
     "Nilai / Hasil": [
