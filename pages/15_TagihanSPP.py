@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 # Konfigurasi Halaman
 st.set_page_config(
@@ -8,7 +9,7 @@ st.set_page_config(
 )
 
 st.title("🧮 Simulasi Pembayaran & Pemotongan Pajak")
-st.caption("Hitung DPP, PPN 12% (DPP Nilai Lain), PPh (23/22/4(2)), dan Nilai Bersih Tagihan")
+st.caption("Perhitungan DPP Murni (PPh), DPP Nilai Lain (PPN 12%), dan Nilai Bersih")
 
 st.markdown("---")
 
@@ -32,21 +33,20 @@ st.markdown("---")
 st.subheader("2. Pengaturan PPN")
 is_ppn = st.radio("Apakah Transaksi Dikenakan PPN?", ["Tidak", "Ya"], horizontal=True)
 
-dpp = 0.0
+dpp_murni = 0.0
 dpp_nilai_lain = 0.0
-tarif_ppn_efektif = 0.12
 nilai_ppn = 0.0
 
 if is_ppn == "Ya":
-    # Berdasarkan tarif PPN 12%:
-    # Total Tagihan (Kotor) = DPP + PPN (12% dari DPP Nilai Lain)
-    # DPP Nilai Lain = (11/12) * Total Tagihan
+    # Jika tagihan sudah termasuk PPN (Inclusive):
+    # DPP Murni = Total Tagihan / 1.12
+    # DPP Nilai Lain PPN = (11/12) * Total Tagihan
     # PPN = 12% * DPP Nilai Lain
+    dpp_murni = total_tagihan / 1.12
     dpp_nilai_lain = (11 / 12) * total_tagihan
     nilai_ppn = 0.12 * dpp_nilai_lain
-    dpp = dpp_nilai_lain  # DPP Utama yang digunakan sebagai acuan
 else:
-    dpp = total_tagihan
+    dpp_murni = total_tagihan
     dpp_nilai_lain = 0.0
     nilai_ppn = 0.0
 
@@ -80,7 +80,7 @@ if is_pph == "Ya":
         npwp_status = st.radio("Memiliki NPWP?", ["Ya", "Tidak"], horizontal=True)
         has_npwp = True if npwp_status == "Ya" else False
 
-    # Penentuan Tarif PPh Dasar
+    # Tarif Dasar
     if "PPh 23 - Jasa" in jenis_pph:
         tarif_pph = 0.02
     elif "PPh 23 - Royalti" in jenis_pph:
@@ -94,83 +94,77 @@ if is_pph == "Ya":
     elif "2.65%" in jenis_pph:
         tarif_pph = 0.0265
 
-    # Penyesuaian tanpa NPWP (Tarif 100% lebih tinggi untuk PPh 23, 100% untuk PPh 22, PPh 4(2) final tidak berubah)
+    # Penalti tanpa NPWP (Khusus PPh 23 dan PPh 22)
     if not has_npwp:
-        if "PPh 23" in jenis_pph:
-            tarif_pph *= 2.0  # Penalti 100%
-            st.warning("⚠️ Karena tidak ber-NPWP, tarif PPh 23 naik 100% (2x lipat).")
-        elif "PPh 22" in jenis_pph:
-            tarif_pph *= 2.0  # Penalti 100%
-            st.warning("⚠️ Karena tidak ber-NPWP, tarif PPh 22 naik 100% (2x lipat).")
+        if "PPh 23" in jenis_pph or "PPh 22" in jenis_pph:
+            tarif_pph *= 2.0
+            st.warning("⚠️ Tarif naik 100% (2x lipat) karena tidak memiliki NPWP.")
 
-    # Hitung Nilai PPh berbasis DPP
-    nilai_pph = dpp * tarif_pph
+    # PPh dihitung dari DPP Murni
+    nilai_pph = dpp_murni * tarif_pph
 
 st.markdown("---")
 
 # ---------------------------------------------------------
-# KALKULASI & HASIL
+# KALKULASI BERSIH & REKONSILIASI
 # ---------------------------------------------------------
-# Total Bersih / Nilai Dibayarkan = Total Tagihan - Potongan PPh
-# (Jika tagihan mencakup PPN, PPN dibayarkan/diakui sesuai DPP + PPN, tetapi potongan PPh mengurangi kas yang dibayarkan)
 nilai_bersih = total_tagihan - nilai_pph
 
-st.subheader("📊 Rincian Hasil Perhitungan")
+# Check Balance: Total Tagihan = Nilai Bersih + Nilai PPh
+total_sistem = nilai_bersih + nilai_pph
+selisih = abs(total_tagihan - total_sistem)
+status_match = "✅ MATCH" if selisih < 0.01 else f"❌ MISMATCH (Selisih: Rp {selisih:,.2f})"
 
-col1, col2 = st.columns(2)
+# ---------------------------------------------------------
+# TAMPILAN TABEL
+# ---------------------------------------------------------
+st.subheader("📊 Tabel Rincian Pembayaran")
 
-with col1:
-    st.metric("Nilai Total Tagihan (Kotor)", f"Rp {total_tagihan:,.2f}")
-    st.metric("DPP / DPP Nilai Lain", f"Rp {dpp:,.2f}")
-    if is_ppn == "Ya":
-        st.caption(f"DPP Nilai Lain (11/12): Rp {dpp_nilai_lain:,.2f}")
-        st.metric("Nilai PPN (12%)", f"Rp {nilai_ppn:,.2f}")
-    else:
-        st.metric("Nilai PPN", "Rp 0.00 (Tidak Dikenakan)")
+# Data Rincian Utama
+data_rincian = {
+    "Komponen Perhitungan": [
+        "Nilai Total Tagihan (Kotor)",
+        "DPP Murni (Dasar PPh)",
+        "DPP Nilai Lain (11/12)",
+        "Nilai PPN (12%)",
+        f"Potongan PPh ({jenis_pph if is_pph == 'Ya' else 'Tanpa PPh'})",
+        "💰 Nilai Total Bersih (Dibayarkan)"
+    ],
+    "Keterangan / Tarif": [
+        "Nilai Awal Tagihan",
+        "Tagihan ÷ 1.12" if is_ppn == "Ya" else "Sama dengan Tagihan",
+        "11/12 × Tagihan" if is_ppn == "Ya" else "Tidak ada PPN",
+        "12% × DPP Nilai Lain" if is_ppn == "Ya" else "0%",
+        f"Tarif: {tarif_pph*100:.2f}%" if is_pph == "Ya" else "0%",
+        "Total Tagihan - Potongan PPh"
+    ],
+    "Nilai (Rp)": [
+        f"Rp {total_tagihan:,.2f}",
+        f"Rp {dpp_murni:,.2f}",
+        f"Rp {dpp_nilai_lain:,.2f}",
+        f"Rp {nilai_ppn:,.2f}",
+        f"Rp {nilai_pph:,.2f}",
+        f"Rp {nilai_bersih:,.2f}"
+    ]
+}
 
-with col2:
-    if is_pph == "Ya":
-        st.metric(f"Potongan PPh ({tarif_pph*100:.2f}%)", f"Rp {nilai_pph:,.2f}")
-        st.caption(f"Jenis: {jenis_pph}")
-    else:
-        st.metric("Potongan PPh", "Rp 0.00 (Tidak Dikenakan)")
-    
-    st.metric("💰 Nilai Total Bersih (Dibayarkan)", f"Rp {nilai_bersih:,.2f}")
+df_rincian = pd.DataFrame(data_rincian)
+st.table(df_rincian)
 
 st.markdown("---")
 
-# ---------------------------------------------------------
-# PENCOCOKAN SISTEM / REKONSILIASI
-# ---------------------------------------------------------
-st.subheader("🔄 Pencocokan Sistem (Check Balance)")
+# Tabel Check Balance
+st.subheader("🔄 Tabel Pencocokan Sistem (Check Balance)")
+st.caption("Formula: Nilai Total Tagihan = Nilai Bersih + Nilai PPh")
 
-# Sesuai formula persamaannya: Total Tagihan = Nilai Bersih + Nilai PPh
-# Atau Total Kotor = Nilai Bersih + Nilai PPh (di mana Total Kotor sudah include PPN jika ada)
-total_sistem = nilai_bersih + nilai_pph
-selisih = abs(total_tagihan - total_sistem)
+data_check = {
+    "Parameter": ["Total Tagihan Input", "Total Kalkulasi Sistem (Bersih + PPh)", "Status Pencocokan"],
+    "Nilai / Hasil": [
+        f"Rp {total_tagihan:,.2f}",
+        f"Rp {total_sistem:,.2f}",
+        status_match
+    ]
+}
 
-st.write("**Formula:** `Nilai Total Tagihan = Nilai Bersih + Nilai PPh`")
-
-col_chk1, col_chk2, col_chk3 = st.columns(3)
-col_chk1.write(f"**Total Tagihan Input:**\nRp {total_tagihan:,.2f}")
-col_chk2.write(f"**Total Kalkulasi Sistem:**\nRp {total_sistem:,.2f}")
-
-if selisih < 0.01:
-    col_chk3.success("✅ **MATCH / COCOK**")
-else:
-    col_chk3.error(f"❌ **MISMATCH (Selisih: Rp {selisih:,.2f})**")
-
-# Detail Ringkasan Akuntansi
-with st.expander("📌 Lihat Ringkasan Rekonsiliasi Akuntansi"):
-    st.json({
-        "Total Tagihan (Kotor)": f"Rp {total_tagihan:,.2f}",
-        "DPP": f"Rp {dpp:,.2f}",
-        "DPP Nilai Lain (11/12)": f"Rp {dpp_nilai_lain:,.2f}" if is_ppn == "Ya" else "Rp 0.00",
-        "Tarif PPN Efektif": "12%" if is_ppn == "Ya" else "0%",
-        "Nilai PPN": f"Rp {nilai_ppn:,.2f}",
-        "Jenis PPh": jenis_pph if is_pph == "Ya" else "Tanpa PPh",
-        "Tarif PPh": f"{tarif_pph*100:.2f}%" if is_pph == "Ya" else "0%",
-        "Nilai Potongan PPh": f"Rp {nilai_pph:,.2f}",
-        "Nilai Total Bersih (Take Home)": f"Rp {nilai_bersih:,.2f}",
-        "Hasil Check Balance": "SEIMBANG" if selisih < 0.01 else "TIDAK SEIMBANG"
-    })
+df_check = pd.DataFrame(data_check)
+st.table(df_check)
