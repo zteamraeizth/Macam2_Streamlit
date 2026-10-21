@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 st.title("🧮 Simulasi Pembayaran & Pemotongan Pajak")
-st.caption("Perhitungan DPP Murni (PPh), DPP Nilai Lain (PPN 12%), dan Nilai Bersih")
+st.caption("Perhitungan DPP Murni (PPh), PPN 12% (DPP Nilai Lain 11/12), dan Nilai Bersih")
 
 st.markdown("---")
 
@@ -38,12 +38,14 @@ dpp_nilai_lain = 0.0
 nilai_ppn = 0.0
 
 if is_ppn == "Ya":
-    # Berdasarkan PPN 12% dengan DPP Nilai Lain (11/12):
-    # PPN Efektif = 12% * (11/12) * Total Tagihan = 11% * Total Tagihan
-    # Maka DPP Murni (sebelum PPN) = Total Tagihan / 1.11
-    dpp_murni = total_tagihan / 1.11
+    # 1. DPP Nilai Lain (11/12 dari Tagihan)
     dpp_nilai_lain = (11 / 12) * total_tagihan
+    
+    # 2. PPN = 12% x DPP Nilai Lain (Efektif 11% dari Total Tagihan)
     nilai_ppn = 0.12 * dpp_nilai_lain
+    
+    # 3. DPP Murni (Dasar Hitung PPh) = Total Tagihan - Nilai PPN
+    dpp_murni = total_tagihan - nilai_ppn
 else:
     dpp_murni = total_tagihan
     dpp_nilai_lain = 0.0
@@ -108,7 +110,6 @@ st.markdown("---")
 # KALKULASI BERSIH & REKONSILIASI
 # ---------------------------------------------------------
 # Nilai Bersih yang dibayarkan = Total Tagihan - Potongan PPh - Nilai PPN
-# (Atau jika PPN dibayarkan terpisah, disesuaikan dengan skema pembayarnya)
 nilai_bersih = total_tagihan - nilai_pph - nilai_ppn
 
 # Check Balance: Total Tagihan = Nilai Bersih + Nilai PPh + Nilai PPN
@@ -125,25 +126,25 @@ st.subheader("📊 Tabel Rincian Pembayaran")
 data_rincian = {
     "Komponen Perhitungan": [
         "Nilai Total Tagihan (Kotor)",
-        "DPP Murni (Dasar PPh)",
         "DPP Nilai Lain (11/12)",
         "Nilai PPN (12%)",
+        "DPP Murni (Dasar PPh)",
         f"Potongan PPh ({jenis_pph if is_pph == 'Ya' else 'Tanpa PPh'})",
         "💰 Nilai Total Bersih (Dibayarkan)"
     ],
-    "Keterangan / Tarif": [
-        "Nilai Kotor Awal",
-        "Tagihan ÷ 1.11" if is_ppn == "Ya" else "Sama dengan Tagihan",
-        "11/12 × Tagihan" if is_ppn == "Ya" else "Tidak ada PPN",
-        "12% × DPP Nilai Lain (11% Efektif)" if is_ppn == "Ya" else "0%",
+    "Keterangan / Rumus": [
+        "Nilai Tagihan Awal",
+        "11/12 × Total Tagihan" if is_ppn == "Ya" else "Tidak Ada PPN",
+        "12% × DPP Nilai Lain" if is_ppn == "Ya" else "0%",
+        "Total Tagihan - Nilai PPN" if is_ppn == "Ya" else "Sama Dengan Total Tagihan",
         f"Tarif: {tarif_pph*100:.2f}% × DPP Murni" if is_pph == "Ya" else "0%",
         "Total Tagihan - PPh - PPN"
     ],
     "Nilai (Rp)": [
         f"Rp {total_tagihan:,.2f}",
-        f"Rp {dpp_murni:,.2f}",
         f"Rp {dpp_nilai_lain:,.2f}",
         f"Rp {nilai_ppn:,.2f}",
+        f"Rp {dpp_murni:,.2f}",
         f"Rp {nilai_pph:,.2f}",
         f"Rp {nilai_bersih:,.2f}"
     ]
