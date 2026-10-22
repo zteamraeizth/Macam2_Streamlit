@@ -34,21 +34,44 @@ def parse_multi_data_kegiatan(raw_text):
         if block_lines:
             nama_kegiatan = block_lines[0]
 
-        # 3. Deskripsi Sub Kegiatan (Mencari baris 'Pelaksanaan tugas...')
+        # 3. Deskripsi Sub Kegiatan & Status Kegiatan
         sub_kegiatan = "-"
+        status_kegiatan = "-"
+
         for line in block_lines:
             if (
                 "pelaksanaan tugas" in line.lower()
                 or "tugas dan fungsi" in line.lower()
             ):
-                # Bersihkan kata status jika menempel di akhir (misal: '...8 jam)Disetujui')
-                sub_kegiatan = re.sub(
+                # Cari kata kunci status di akhir baris (misal: 'Disetujui' atau 'Baru Diusulkan')
+                match_status = re.search(
                     r"(Disetujui|Baru Diusulkan|Kegiatan Disetujui)$",
-                    "",
                     line,
-                    flags=re.IGNORECASE,
-                ).strip()
+                    re.IGNORECASE,
+                )
+                if match_status:
+                    status_kegiatan = match_status.group(1).strip()
+                    # Bersihkan teks status dari baris deskripsi sub kegiatan
+                    sub_kegiatan = re.sub(
+                        r"(Disetujui|Baru Diusulkan|Kegiatan Disetujui)$",
+                        "",
+                        line,
+                        flags=re.IGNORECASE,
+                    ).strip()
+                else:
+                    sub_kegiatan = line.strip()
                 break
+
+        # Fallback pencarian status jika tidak berada di baris sub kegiatan
+        if status_kegiatan == "-":
+            for line in block_lines:
+                if line.strip() in [
+                    "Disetujui",
+                    "Baru Diusulkan",
+                    "Kegiatan Disetujui",
+                ]:
+                    status_kegiatan = line.strip()
+                    break
 
         # 4. Tanggal (Mencari format tanggal Indonesia, contoh "20 Oktober 2026")
         tanggal_str = "-"
@@ -77,9 +100,10 @@ def parse_multi_data_kegiatan(raw_text):
                 "No ST": no_st_num,
                 "ID Kegiatan": id_kegiatan,
                 "Deskripsi Sub Kegiatan": sub_kegiatan,
-                "Status": "",  # Dikosongkan sesuai instruksi
-                "Kode": "-",
-                "Jenis SPD": "-",
+                "Status": "",  # Dikosongkan sesuai instruksi sebelumnya
+                "Status Kegiatan": status_kegiatan,  # Kolom Baru
+                "Kode": "763",
+                "Jenis SPD": "SPD Dalam Kota",
                 "Nama Kegiatan": nama_kegiatan,
                 "Tanggal": tanggal_str,
                 "Nomor Surat Tugas": nomor_st,
