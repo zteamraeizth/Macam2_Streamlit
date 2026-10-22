@@ -1,58 +1,84 @@
-import os
-import platform
-import subprocess
+import io
 import streamlit as st
+import fitz  # PyMuPDF
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-def convert_docx_to_pdf(input_docx_path: str, output_pdf_path: str) -> bool:
-    """
-    Mengonversi file DOCX ke PDF.
-    - Menggunakan LibreOffice (soffice) untuk Linux / Streamlit Cloud.
-    - Menggunakan docx2pdf untuk Windows (lokal).
+st.set_page_config(page_title="PDF Direct Editor", layout="wide")
+
+st.title("📄 PDF Direct Text Editor (SPBY)")
+st.write("Upload file PDF, edit teksnya secara langsung di Streamlit, lalu buat PDF baru.")
+
+# 1. Upload File PDF
+uploaded_file = st.file_uploader("Upload File PDF SPBY", type=["pdf"])
+
+if uploaded_file is not None:
+    # Membaca PDF menggunakan PyMuPDF (fitz)
+    pdf_bytes = uploaded_file.read()
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     
-    Returns:
-        bool: True jika berhasil, False jika gagal.
-    """
-    current_os = platform.system()
+    # Ekstraksi teks dari seluruh halaman
+    extracted_text = ""
+    for page in doc:
+        extracted_text += page.get_text() + "\n"
 
-    try:
-        if current_os == "Linux":
-            # Folder tujuan output
-            output_dir = os.path.dirname(os.path.abspath(output_pdf_path)) or "."
-            
-            # Eksekusi LibreOffice headless mode
-            cmd = [
-                "soffice",
-                "--headless",
-                "--convert-to", "pdf",
-                input_docx_path,
-                "--outdir", output_dir
-            ]
-            
-            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
-            
-            # LibreOffice menghasilkan file dengan nama yang sama dengan docx (ekstensi .pdf)
-            base_name = os.path.splitext(os.path.basename(input_docx_path))[0]
-            generated_pdf = os.path.join(output_dir, f"{base_name}.pdf")
-            
-            # Jika nama output_pdf_path beda dari default LibreOffice, lakukan rename
-            if generated_pdf != os.path.abspath(output_pdf_path) and os.path.exists(generated_pdf):
-                os.replace(generated_pdf, output_pdf_path)
+    st.subheader("📝 Area Edit Teks PDF")
+    
+    # Text area untuk menyunting konten PDF secara langsung
+    edited_text = st.text_area(
+        "Silahkan sesuaikan/edit teks di bawah ini:",
+        value=extracted_text,
+        height=400
+    )
 
-            return True
+    # 2. Re-generate PDF Baru Menggunakan ReportLab
+    if st.button("🔄 Buat & Simpan PDF Baru"):
+        if edited_text.strip():
+            with st.spinner("Memproses pembuatan PDF baru..."):
+                pdf_buffer = io.BytesIO()
+                doc_pdf = SimpleDocTemplate(
+                    pdf_buffer,
+                    pagesize=A4,
+                    rightMargin=36,
+                    leftMargin=36,
+                    topMargin=36,
+                    bottomMargin=36
+                )
+                
+                styles = getSampleStyleSheet()
+                # Kustomisasi gaya teks agar rapi
+                normal_style = ParagraphStyle(
+                    'PDFStyle',
+                    parent=styles['Normal'],
+                    fontSize=10,
+                    leading=14,
+                    fontName='Helvetica'
+                )
 
-        elif current_os == "Windows":
-            from docx2pdf import convert
-            convert(input_docx_path, output_pdf_path)
-            return True
+                story = []
+                # Memproses baris demi baris menjadi paragraf PDF
+                lines = edited_text.split('\n')
+                for line in lines:
+                    if line.strip():
+                        # Mengamankan karakter khusus HTML/XML untuk ReportLab
+                        safe_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                        story.append(Paragraph(safe_line, normal_style))
+                    else:
+                        story.append(Spacer(1, 8))
 
+                # Build PDF ke memori buffer
+                doc_pdf.build(story)
+                pdf_buffer.seek(0)
+
+                st.success("PDF baru berhasil diproses!")
+                
+                # Button Download
+                st.download_button(
+                    label="📥 Download PDF Hasil Edit",
+                    data=pdf_buffer,
+                    file_name="SPBY_Edited.pdf",
+                    mime="application/pdf"
+                )
         else:
-            # macOS atau OS lainnya via LibreOffice
-            subprocess.run(["soffice", "--headless", "--convert-to", "pdf", input_docx_path], check=True)
-            return True
-
-    except subprocess.CalledProcessError as e:
-        st.error(f"Gagal mengonversi via LibreOffice: {e.stderr}")
-        return False
-    except Exception as e:
-        st.error(f"Terjadi kesalahan saat konversi PDF: {e}")
-        return False
+            st.warning("Teks tidak boleh kosong.")
