@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 import streamlit as st
 
 st.set_page_config(page_title="Batch Edit Tanda Tangan SPBY", layout="wide")
-st.title("📄 Batch Tambah TTE SPBY (Presisi & Tanggal Dinamis)")
+st.title("📄 Batch Tambah TTE SPBY (Fix NameError y_dicetak)")
 
 # Upload Banyak File PDF Sekaligus
 uploaded_files = st.file_uploader("Upload File PDF SPBY", type=["pdf"], accept_multiple_files=True)
@@ -57,14 +57,18 @@ if uploaded_files:
                             # --- EKSTRAK TANGGAL DICETAK DINAMIS DARI DOKUMEN ASLI ---
                             dicetak_text_asli = "Dicetak pada tanggal 22 Oktober 2026"  # Fallback default
                             rects_dicetak = page.search_for("Dicetak pada tanggal")
+                            
                             if rects_dicetak:
                                 d_rect = rects_dicetak[0]
-                                search_area = fitz.Rect(d_rect.x0 - 5, d_rect.y0 - 2, page_rect.x1 - 10, d_rect.y1 + 5)
+                                search_area = fitz.Rect(d_rect.x0 - 2, d_rect.y0 - 1, page_rect.x1 - 10, d_rect.y1 + 2)
                                 extracted_text = page.get_text("text", clip=search_area).strip()
+                                
                                 if extracted_text:
-                                    dicetak_text_asli = extracted_text.split('\n')[0]
+                                    lines = [line.strip() for line in extracted_text.split('\n') if "Dicetak" in line]
+                                    if lines:
+                                        dicetak_text_asli = lines[0]
 
-                            # Clear area bawah (termasuk teks dicetak lama)
+                            # Clear area bawah
                             clear_rect = fitz.Rect(
                                 margin_left + 0.5, 
                                 y_start - 12, 
@@ -106,19 +110,18 @@ if uploaded_files:
                                     )
                                 page.insert_text(fitz.Point(x_ppk, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
                                 page.insert_text(fitz.Point(x_ppk, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
-                            
-                                                            
-                                # --- FOOTER DICETAK (Khusus Halaman 1) ---
-                                                            y_dicetak = y_curr + 24
-                                                            page.insert_text(fitz.Point(x_ppk + 15, y_dicetak), dicetak_text_asli, fontsize=7.5, fontname="helv", color=(0, 0, 0))
-                                
-                                                            # --- BINGKAI LOKAL HALAMAN 1 ---
-                                                            line_y_start = y_start - 12.5
-                                                            new_bottom_y = y_dicetak + 8
-                                                            page.draw_line(fitz.Point(margin_left, line_y_start), fitz.Point(margin_left, new_bottom_y), color=(0, 0, 0), width=1.0)
-                                                            page.draw_line(fitz.Point(margin_right, line_y_start), fitz.Point(margin_right, new_bottom_y), color=(0, 0, 0), width=1.0)
-                                                            page.draw_line(fitz.Point(margin_left, new_bottom_y), fitz.Point(margin_right, new_bottom_y), color=(0, 0, 0), width=1.0)
-                    
+
+                            # --- FOOTER DICETAK (Khusus Halaman 1) ---
+                            y_dicetak = y_curr + 24
+                            page.insert_text(fitz.Point(x_ppk + 15, y_dicetak), dicetak_text_asli, fontsize=7.5, fontname="helv", color=(0, 0, 0))
+
+                            # --- BINGKAI LOKAL HALAMAN 1 ---
+                            line_y_start = y_start - 12.5
+                            new_bottom_y = y_dicetak + 8
+                            page.draw_line(fitz.Point(margin_left, line_y_start), fitz.Point(margin_left, new_bottom_y), color=(0, 0, 0), width=1.0)
+                            page.draw_line(fitz.Point(margin_right, line_y_start), fitz.Point(margin_right, new_bottom_y), color=(0, 0, 0), width=1.0)
+                            page.draw_line(fitz.Point(margin_left, new_bottom_y), fitz.Point(margin_right, new_bottom_y), color=(0, 0, 0), width=1.0)
+
                     # -------------------------------------------------------------
                     # HALAMAN 2, 3, dst. (Redaction Presisi Teks & Garis Aman)
                     # -------------------------------------------------------------
@@ -127,6 +130,7 @@ if uploaded_files:
                             for r in rects_ppk:
                                 y_base = r.y0
                                 
+                                # Redact area teks presisi
                                 erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 3, y_base + 35)
                                 page.add_redact_annot(erase_rect, fill=(1, 1, 1))
                                 page.apply_redactions()
@@ -145,6 +149,13 @@ if uploaded_files:
                                 page.insert_text(fitz.Point(x_pos, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
                                 page.insert_text(fitz.Point(x_pos, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
 
+                                # PERBAIKAN: Menggunakan y_curr langsung (tanpa memakai y_dicetak)
+                                page.draw_line(
+                                    fitz.Point(margin_right, y_base - 15),
+                                    fitz.Point(margin_right, y_curr + 20),
+                                    color=(0, 0, 0),
+                                    width=1.0
+                                )
 
                 out_bytes = doc.tobytes()
                 new_filename = f"TTE_{pdf_file.name}"
@@ -158,7 +169,7 @@ if uploaded_files:
 
             st.session_state["processed_files"] = processed_files
             st.session_state["merged_bytes"] = merged_bytes
-            st.success("Seluruh dokumen berhasil diperbarui!")
+            st.success("Seluruh dokumen berhasil diperbarui tanpa error!")
 
     # 📥 OPSI DOWNLOAD
     if "processed_files" in st.session_state and st.session_state["processed_files"]:
