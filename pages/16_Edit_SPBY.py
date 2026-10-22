@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 import streamlit as st
 
 st.set_page_config(page_title="Batch Edit Tanda Tangan SPBY", layout="wide")
-st.title("📄 Batch Tambah TTE SPBY (Presisi Per Halaman)")
+st.title("📄 Batch Tambah TTE SPBY (Fix Halaman 2 & 3)")
 
 uploaded_files = st.file_uploader("Upload File PDF SPBY", type=["pdf"], accept_multiple_files=True)
 
@@ -94,11 +94,11 @@ if uploaded_files:
                                 page.insert_text(fitz.Point(x_ppk, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
                                 page.insert_text(fitz.Point(x_ppk, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
 
-                            # --- FOOTER DICETAK (Khusus Halaman 1) ---
+                            # --- FOOTER DICETAK ---
                             y_dicetak = y_curr + 24
                             page.insert_text(fitz.Point(x_ppk + 30, y_dicetak), "Dicetak pada tanggal 22 Oktober 2026", fontsize=7.5, fontname="helv", color=(0, 0, 0))
 
-                            # --- BINGKAI LOKAL (Khusus Halaman 1) ---
+                            # --- BINGKAI LOKAL ---
                             line_y_start = y_start - 12.5
                             new_bottom_y = y_dicetak + 8
                             page.draw_line(fitz.Point(margin_left, line_y_start), fitz.Point(margin_left, new_bottom_y), color=(0, 0, 0), width=1.0)
@@ -106,13 +106,13 @@ if uploaded_files:
                             page.draw_line(fitz.Point(margin_left, new_bottom_y), fitz.Point(margin_right, new_bottom_y), color=(0, 0, 0), width=1.0)
 
                     # -------------------------------------------------------------
-                    # HALAMAN 2, 3, dst. (Tanpa Kotak Tambahan & Tanpa Footer Cetak)
+                    # HALAMAN 2, 3, dst. (Redaction Diperluas ke Kiri)
                     # -------------------------------------------------------------
                     else:
                         if rects_ppk:
                             for r in rects_ppk:
-                                # Hanya menghapus area kecil persis di lokasi nama & NIP lama
-                                erase_rect = fitz.Rect(r.x0 - 2, r.y0 - 15, r.x1 + 60, r.y1 + 25)
+                                # PERBAIKAN: x0 - 45 untuk menutup teks "NIP" atau teks asli di sebelah kiri
+                                erase_rect = fitz.Rect(r.x0 - 45, r.y0 - 20, r.x1 + 80, r.y1 + 60)
                                 page.add_redact_annot(erase_rect, fill=(1, 1, 1))
                                 page.apply_redactions()
 
@@ -143,7 +143,7 @@ if uploaded_files:
 
             st.session_state["processed_files"] = processed_files
             st.session_state["merged_bytes"] = merged_bytes
-            st.success("Seluruh dokumen berhasil diperbarui sesuai format asli per halaman!")
+            st.success("Teks sisa di Halaman 2 & 3 berhasil tertutup sempurna!")
 
     # Opsi Download
     if "processed_files" in st.session_state and st.session_state["processed_files"]:
