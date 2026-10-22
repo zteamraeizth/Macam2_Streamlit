@@ -72,35 +72,30 @@ if uploaded_files:
                             )
 
                             # --- EKSTRAK TANGGAL DICETAK DINAMIS DARI DOKUMEN ASLI ---
-                            dicetak_text_asli = "Dicetak pada tanggal ..."  # Fallback generik
-                            rects_dicetak = page.search_for(
-                                "Dicetak pada tanggal"
-                            )
+                            dicetak_text_asli = ""
 
-                            if rects_dicetak:
-                                d_rect = rects_dicetak[0]
-                                # Perluas area pencarian ke kanan untuk membaca tanggal lengkap
-                                search_area = fitz.Rect(
-                                    d_rect.x0 - 2,
-                                    d_rect.y0 - 2,
-                                    page_rect.x1 - 10,
-                                    d_rect.y1 + 10,
+                            # Metode 1: Cari dari seluruh teks halaman 1
+                            full_text = page.get_text("text")
+                            lines = full_text.splitlines()
+
+                            for line in lines:
+                                if "dicetak" in line.lower():
+                                    dicetak_text_asli = line.strip()
+                                    break
+
+                            # Metode 2: Jika tidak ketemu dari line-break, gunakan Regex pada teks utuh
+                            if not dicetak_text_asli:
+                                match = re.search(
+                                    r"Dicetak\s+pada\s+tanggal\s+[^\n\r]+",
+                                    full_text,
+                                    re.IGNORECASE,
                                 )
-                                extracted_text = page.get_text(
-                                    "text", clip=search_area
-                                ).strip()
+                                if match:
+                                    dicetak_text_asli = match.group(0).strip()
 
-                                if extracted_text:
-                                    # Menggunakan RegEx untuk mengekstrak kalimat "Dicetak pada tanggal ..."
-                                    match = re.search(
-                                        r"Dicetak\s+pada\s+tanggal\s+.*",
-                                        extracted_text,
-                                        re.IGNORECASE,
-                                    )
-                                    if match:
-                                        dicetak_text_asli = (
-                                            match.group(0).split("\n")[0].strip()
-                                        )
+                            # Fallback jika dokumen memang tidak memuat kalimat tersebut sama sekali
+                            if not dicetak_text_asli:
+                                dicetak_text_asli = "Dicetak pada tanggal ..."
 
                             # Clear area bawah
                             clear_rect = fitz.Rect(
