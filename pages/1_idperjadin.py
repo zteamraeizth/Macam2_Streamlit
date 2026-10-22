@@ -15,7 +15,7 @@ def parse_multi_data_kegiatan(raw_text):
     id_indices = [
         i
         for i, line in enumerate(lines)
-        if "Id Kegiatan:" in line or "ID Kegiatan:" or "ID Kegiatan :" in line
+        if "Id Kegiatan:" in line or "ID Kegiatan:" in line
     ]
 
     for idx, i in enumerate(id_indices):
