@@ -108,7 +108,7 @@ if uploaded_files:
                                 y_base = r.y0
                                 
                                 # A. Redact area teks presisi (dikunci sebelum margin_right agar garis tidak terpotong)
-                                erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 2, y_base + 35)
+                                erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 1, y_base + 35)
                                 page.add_redact_annot(erase_rect, fill=(1, 1, 1))
                                 page.apply_redactions()
 
@@ -126,15 +126,7 @@ if uploaded_files:
                                     )
                                 page.insert_text(fitz.Point(x_pos, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
                                 page.insert_text(fitz.Point(x_pos, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
-
-                                # C. Sambungkan garis vertikal kanan di Halaman 2 agar utuh menyambung
-                                page.draw_line(
-                                    fitz.Point(margin_right, y_base - 15),
-                                    fitz.Point(margin_right, y_curr + 25),
-                                    color=(0, 0, 0),
-                                    width=1.0
-                                )
-
+                                
                 out_bytes = doc.tobytes()
                 new_filename = f"TTE_{pdf_file.name}"
                 processed_files.append((new_filename, out_bytes))
@@ -147,7 +139,7 @@ if uploaded_files:
 
             st.session_state["processed_files"] = processed_files
             st.session_state["merged_bytes"] = merged_bytes
-            st.success("Garis di Halaman 2 berhasil tersambung utuh!")
+            st.success("Berhasil Diproses!")
 
     # Opsi Download
     if "processed_files" in st.session_state and st.session_state["processed_files"]:
