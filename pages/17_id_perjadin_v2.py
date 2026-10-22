@@ -78,8 +78,8 @@ def parse_multi_data_kegiatan(raw_text):
                 "ID Kegiatan": id_kegiatan,
                 "Deskripsi Sub Kegiatan": sub_kegiatan,
                 "Status": "",  # Dikosongkan sesuai instruksi
-                "Kode": "763",
-                "Jenis SPD": "SPD Dalam Kota",
+                "Kode": "-",
+                "Jenis SPD": "-",
                 "Nama Kegiatan": nama_kegiatan,
                 "Tanggal": tanggal_str,
                 "Nomor Surat Tugas": nomor_st,
