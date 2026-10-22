@@ -108,7 +108,7 @@ if uploaded_files:
                                 y_base = r.y0
                                 
                                 # A. Redact area teks presisi (dikunci sebelum margin_right agar garis tidak terpotong)
-                                erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 1, y_base + 35)
+                                erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 0.2, y_base + 35)
                                 page.add_redact_annot(erase_rect, fill=(1, 1, 1))
                                 page.apply_redactions()
 
