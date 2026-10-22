@@ -131,14 +131,14 @@ def extract_surat_tugas_data(pdf_file):
 
     return {
         "Nama File": pdf_file.name,
-        "Nomor ST": nomor_st,
-        "Jumlah Orang": jumlah_orang,  # Kolom Baru
+        "Nomor ST": nomor_st,        
         "Hari": hari,
         "Tanggal Pelaksanaan": tanggal,
         "Waktu": waktu,
         "Tempat": tempat,
         "Agenda": agenda,
         "Tanggal Surat": tanggal_surat,
+        "Jumlah Orang": jumlah_orang,  # Kolom Baru
     }
 
 
