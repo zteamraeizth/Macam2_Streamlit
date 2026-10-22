@@ -10,3 +10,4 @@ opencv-python-headless
 reportlab
 pdf2docx
 python-docx
+docx2pdf
