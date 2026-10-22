@@ -32,6 +32,7 @@ if uploaded_files:
                 pdf_bytes = pdf_file.read()
                 doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
+                # PERULANGAN HALAMAN
                 for page_num in range(len(doc)):
                     page = doc[page_num]
                     page_rect = page.rect
@@ -125,6 +126,68 @@ if uploaded_files:
                             for r in rects_ppk:
                                 y_base = r.y0
                                 
-                                # Redact area teks presisi (dikunci sebelum margin_right - 0.5 agar garis tidak terpotong)
                                 erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 0.5, y_base + 35)
-                                page.
+                                page.add_redact_annot(erase_rect, fill=(1, 1, 1))
+                                page.apply_redactions()
+
+                                x_pos = r.x0
+                                y_curr = y_base + Y_OFFSET_TTE
+
+                                if add_tte_ppk:
+                                    page.insert_text(
+                                        fitz.Point(x_pos, y_curr - 12),
+                                        "Ditandatangani secara elektronik",
+                                        fontsize=8,
+                                        fontname="helv",
+                                        color=(0.4, 0.4, 0.4)
+                                    )
+                                page.insert_text(fitz.Point(x_pos, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
+                                page.insert_text(fitz.Point(x_pos, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
+
+                                page.draw_line(
+                                    fitz.Point(margin_right, y_base - 15),
+                                    fitz.Point(margin_right, y_curr + 25),
+                                    color=(0, 0, 0),
+                                    width=1.0
+                                )
+
+                out_bytes = doc.tobytes()
+                new_filename = f"TTE_{pdf_file.name}"
+                processed_files.append((new_filename, out_bytes))
+
+                merged_doc.insert_pdf(doc)
+                doc.close()
+
+            merged_bytes = merged_doc.tobytes()
+            merged_doc.close()
+
+            st.session_state["processed_files"] = processed_files
+            st.session_state["merged_bytes"] = merged_bytes
+            st.success("Seluruh dokumen berhasil diperbarui!")
+
+    # 📥 OPSI DOWNLOAD
+    if "processed_files" in st.session_state and st.session_state["processed_files"]:
+        st.write("---")
+        st.subheader("📥 Opsi Download PDF")
+
+        # 1. Download File PDF Gabungan (Merge)
+        st.download_button(
+            label="📦 Download Semua PDF Gabungan (Merged PDF)",
+            data=st.session_state["merged_bytes"],
+            file_name="SPBY_TTE_Merged_Gabungan.pdf",
+            mime="application/pdf",
+            type="primary"
+        )
+
+        st.write("---")
+        st.write("**Atau Download File Satu per Satu:**")
+
+        # 2. Download File Individu
+        for filename, b_data in st.session_state["processed_files"]:
+            st.download_button(
+                label=f"📄 Download {filename}",
+                data=b_data,
+                file_name=filename,
+                mime="application/pdf",
+                key=filename
+            )
