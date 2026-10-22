@@ -10,10 +10,11 @@ if uploaded_file is not None:
     pdf_bytes = uploaded_file.read()
     
     st.subheader("⚙️ Pengaturan Posisi & Jarak Spasi TTE")
+    # SliderOffset Y maks diset ke 40
     y_offset_tte = st.slider(
         "Jarak Teks TTE dari Atas (Offset Y)", 
         min_value=0, 
-        max_value=60, 
+        max_value=40, 
         value=20, 
         help="Geser untuk mengatur spasi vertikal teks TTE dan NIP"
     )
@@ -45,15 +46,24 @@ if uploaded_file is not None:
             x_ppk = rects_ppk[0].x0 if rects_ppk else 380
             x_penerima = rects_penerima[0].x0 if rects_penerima else 210
 
-            # 2. Hapus Presisi Per Kolom (Menjaga Kolom Tengah & Titik-titik Tetap Utuh)
-            # A. Redact Kolom Bendahara (Kiri)
+            # Margin bingkai luar resmi SPBY SAKTI
+            margin_left = 18.0
+            margin_right = page_rect.x1 - 18.0
+
+            # 2. Redact Presisi (HANYA teks nama, NIP lama, dan footer cetak, tanpa menghapus titik-titik tengah)
+            # A. Redact Nama & NIP Bendahara
             page.add_redact_annot(
-                fitz.Rect(x_bend - 5, y_start - 10, x_bend + 150, page_rect.y1 - 5),
+                fitz.Rect(x_bend - 2, y_start - 12, x_bend + 140, y_start + 30),
                 fill=(1, 1, 1)
             )
-            # B. Redact Kolom PPK & Footer Cetak (Kanan)
+            # B. Redact Nama & NIP PPK + Footer Cetak
             page.add_redact_annot(
-                fitz.Rect(x_ppk - 5, y_start - 10, page_rect.x1 - 10, page_rect.y1 - 5),
+                fitz.Rect(x_ppk - 2, y_start - 12, margin_right - 2, page_rect.y1 - 5),
+                fill=(1, 1, 1)
+            )
+            # C. Hapus Garis Bawah Lama Saja
+            page.add_redact_annot(
+                fitz.Rect(margin_left - 2, y_start + 25, margin_right + 2, page_rect.y1 - 5),
                 fill=(1, 1, 1)
             )
             page.apply_redactions()
@@ -85,17 +95,17 @@ if uploaded_file is not None:
                 color=(0, 0, 0)
             )
 
-            # --- KOLOM PENERIMA UANG (Pastikan Titik-Titik Selalu Ada) ---
-            # Dua baris titik-titik tanda tangan penerima
+            # --- KOLOM PENERIMA UANG (Titik-Titik Sesuai Gambar 2) ---
+            # Dua baris titik-titik sejajar presisi dengan posisi asli
             page.insert_text(
-                fitz.Point(x_penerima, y_curr),
+                fitz.Point(x_penerima, y_start + 12),
                 "...................................................",
                 fontsize=8,
                 fontname="helv",
                 color=(0, 0, 0)
             )
             page.insert_text(
-                fitz.Point(x_penerima, y_curr + 15),
+                fitz.Point(x_penerima, y_start + 26),
                 "...................................................",
                 fontsize=8,
                 fontname="helv",
@@ -127,7 +137,7 @@ if uploaded_file is not None:
             )
 
             # --- FOOTER DICETAK PADA TANGGAL ---
-            y_dicetak = y_curr + 26
+            y_dicetak = max(y_curr + 24, y_start + 36)
             page.insert_text(
                 fitz.Point(x_ppk + 30, y_dicetak),
                 "Dicetak pada tanggal 22 Oktober 2026",
@@ -136,9 +146,7 @@ if uploaded_file is not None:
                 color=(0, 0, 0)
             )
 
-            # 4. Sambungkan Garis Bingkai Luar Secara Presisi (18.0 pt dari Margin Asli SPBY)
-            margin_left = 18.0
-            margin_right = page_rect.x1 - 18.0
+            # 4. Sambungkan Garis Bingkai Luar Presisi
             new_bottom_y = y_dicetak + 8
 
             # Garis Vertikal Kiri
@@ -168,7 +176,7 @@ if uploaded_file is not None:
             output_bytes = doc.tobytes()
             doc.close()
 
-            st.success("TTE dan titik-titik Penerima Uang berhasil diselaraskan secara rapi!")
+            st.success("Tata letak TTE, titik-titik Penerima Uang, dan bingkai berhasil dirapikan!")
             st.download_button(
                 label="📥 Download PDF SPBY Hasil Edit",
                 data=output_bytes,
