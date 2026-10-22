@@ -106,11 +106,25 @@ if uploaded_files:
                                     )
                                 page.insert_text(fitz.Point(x_ppk, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
                                 page.insert_text(fitz.Point(x_ppk, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
+                            
+                            
+                            # --- EKSTRAK TANGGAL DICETAK DINAMIS DARI DOKUMEN ASLI ---
+                            dicetak_text_asli = "Dicetak pada tanggal 22 Oktober 2026"  # Fallback default
+                            rects_dicetak = page.search_for("Dicetak pada tanggal")
+                            
+                            if rects_dicetak:
+                                d_rect = rects_dicetak[0]
+                                # PERBAIKAN: Jepit area pencarian secara presisi setinggi baris teks "Dicetak" saja (y0-1 sampai y1+2)
+                                search_area = fitz.Rect(d_rect.x0 - 2, d_rect.y0 - 1, page_rect.x1 - 10, d_rect.y1 + 2)
+                                extracted_text = page.get_text("text", clip=search_area).strip()
+                                
+                                if extracted_text:
+                                    # Filter setiap baris untuk memastikan hanya mengambil kalimat yang ada kata "Dicetak"
+                                    lines = [line.strip() for line in extracted_text.split('\n') if "Dicetak" in line]
+                                    if lines:
+                                        dicetak_text_asli = lines[0]
 
-                            # --- FOOTER DICETAK (Menggunakan Teks Tanggal Asli Terbaca) ---
-                            y_dicetak = y_curr + 24
-                            page.insert_text(fitz.Point(x_ppk + 15, y_dicetak), dicetak_text_asli, fontsize=7.5, fontname="helv", color=(0, 0, 0))
-
+                            
                             # --- BINGKAI LOKAL ---
                             line_y_start = y_start - 12.5
                             new_bottom_y = y_dicetak + 8
@@ -126,7 +140,7 @@ if uploaded_files:
                             for r in rects_ppk:
                                 y_base = r.y0
                                 
-                                erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 0.5, y_base + 35)
+                                erase_rect = fitz.Rect(r.x0 - 45, y_base - 10, margin_right - 3, y_base + 35)
                                 page.add_redact_annot(erase_rect, fill=(1, 1, 1))
                                 page.apply_redactions()
 
@@ -144,12 +158,6 @@ if uploaded_files:
                                 page.insert_text(fitz.Point(x_pos, y_curr), ppk_nama, fontsize=9, fontname="helv", color=(0, 0, 0))
                                 page.insert_text(fitz.Point(x_pos, y_curr + 12), ppk_nip, fontsize=8.5, fontname="helv", color=(0, 0, 0))
 
-                                page.draw_line(
-                                    fitz.Point(margin_right, y_base - 15),
-                                    fitz.Point(margin_right, y_curr + 25),
-                                    color=(0, 0, 0),
-                                    width=1.0
-                                )
 
                 out_bytes = doc.tobytes()
                 new_filename = f"TTE_{pdf_file.name}"
