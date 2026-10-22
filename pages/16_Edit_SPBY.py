@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 import streamlit as st
 
 st.set_page_config(page_title="Batch Edit Tanda Tangan SPBY", layout="wide")
-st.title("📄 Batch Tambah TTE SPBY (Fix Garis Halaman 2)")
+st.title("📄 Batch Tambah TTE SPBY (Final data tidak akan disimpan)")
 
 uploaded_files = st.file_uploader("Upload File PDF SPBY", type=["pdf"], accept_multiple_files=True)
 
