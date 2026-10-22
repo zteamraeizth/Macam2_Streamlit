@@ -1,79 +1,89 @@
 import fitz  # PyMuPDF
 import streamlit as st
 
-st.set_page_config(page_title="Edit SPBY Presisi", layout="wide")
-st.title("📄 Form Editor SPBY (Layout Utuh)")
+st.set_page_config(page_title="Edit Tanda Tangan SPBY", layout="wide")
+st.title("📄 Tambah Tanda Tangan Elektronik SPBY")
 
-uploaded_file = st.file_uploader("Upload File PDF SPBY Asli", type=["pdf"])
+uploaded_file = st.file_uploader("Upload File PDF SPBY", type=["pdf"])
 
 if uploaded_file is not None:
     pdf_bytes = uploaded_file.read()
     
-    # 1. Ekstrak Teks Awal untuk Nilai Default Input Form
-    doc_init = fitz.open(stream=pdf_bytes, filetype="pdf")
-    full_text = doc_init[0].get_text() if len(doc_init) > 0 else ""
-    doc_init.close()
-
-    st.subheader("📝 Edit Field Dokumen SPBY")
+    st.subheader("⚙️ Pengaturan Tanda Tangan Elektronik")
     
     col1, col2 = st.columns(2)
     with col1:
-        nomor = st.text_input("Nomor SPBY", value="00520/PB/410248/2026")
-        tanggal = st.text_input("Tanggal SPBY", value="22 Oktober 2026")
-        nominal_angka = st.text_input("Nominal (Rp)", value="Rp. 440.000,00")
-        nominal_terbilang = st.text_input("Terbilang", value="Empat Ratus Empat Puluh Ribu Rupiah")
-        kepada = st.text_input("Kepada", value="Happy Yess")
-        mak = st.text_input("Kegiatan, Output, MAK", value="015.04.CC.4791.BMA.521211")
+        add_tte_bendahara = st.checkbox("Tambah TTE Bendahara Pengeluaran", value=True)
+        bendahara_nama = st.text_input("Nama Bendahara", value="DENDY ISYANDI ALWIYUDIN")
+        bendahara_nip = st.text_input("NIP Bendahara", value="NIP 199603302018121002")
 
     with col2:
-        untuk_pembayaran = st.text_area(
-            "Untuk Pembayaran", 
-            value="pembayaran belanja barang berupa pembelian 45 box snack rapat dalam rangka undangan Pembahasan SP2DK dan Pemeriksaan Wajib Pajak sesuai UND-727, UND-730, UND-731, UND-757, UND-760, UND-761, UND-766 pada Happy Yess",
-            height=130
-        )
+        add_tte_ppk = st.checkbox("Tambah TTE Pejabat Pembuat Komitmen", value=True)
         ppk_nama = st.text_input("Nama PPK", value="DEVRI OSKANDAR")
-        bendahara_nama = st.text_input("Nama Bendahara", value="DENDY ISYANDI ALWIYUDIN")
+        ppk_nip = st.text_input("NIP PPK", value="NIP 197712082000121001")
 
-    # 2. Proses Re-generating PDF dengan Menimpa Teks
-    if st.button("🔄 Generasi PDF Baru (Layout Presisi)"):
+    if st.button("🔄 Diproses & Tambahkan TTE"):
         with st.spinner("Memproses penyuntingan PDF..."):
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             page = doc[0]
 
-            # Daftar penggantian teks: (Teks Lama yang dicari, Teks Baru)
-            replacements = [
-                ("00520/PB/410248/2026", nomor),
-                ("Happy Yess", kepada),
-                ("015.04.CC.4791.BMA.521211", mak),
-                ("DEVRI OSKANDAR", ppk_nama),
-                ("DENDY ISYANDI ALWIYUDIN", bendahara_nama)
-            ]
-
-            # Proses pencarian dan penimpaan posisi teks
-            for old_txt, new_txt in replacements:
-                rects = page.search_for(old_txt)
+            def add_tte_text(target_name, target_nip, use_tte):
+                # Cari koordinat posisi nama pejabat pada dokumen
+                rects = page.search_for(target_name)
                 for rect in rects:
-                    # Hapus teks lama dengan menutupnya warna putih
-                    page.add_redact_annot(rect, fill=(1, 1, 1))
-                    page.apply_redactions()
+                    # Ambil area sekitar nama dan NIP untuk dibersihkan (redact)
+                    clean_rect = fitz.Rect(
+                        rect.x0 - 2, 
+                        rect.y0 - 14,  # Beri ruang untuk TTE di atas nama
+                        rect.x1 + 60, 
+                        rect.y1 + 15
+                    )
                     
-                    # Tulis teks baru di lokasi koordinat yang sama
+                    page.add_redact_annot(clean_rect, fill=(1, 1, 1))
+                    page.apply_redactions()
+
+                    x_pos = rect.x0
+                    y_base = rect.y0
+
+                    # Jika di-centang TTE, tuliskan teks berwarna abu-abu
+                    if use_tte:
+                        page.insert_text(
+                            fitz.Point(x_pos, y_base - 2),
+                            "Ditandatangani secara elektronik",
+                            fontsize=8,
+                            fontname="helv",
+                            color=(0.4, 0.4, 0.4)  # Warna abu-abu (gray)
+                        )
+
+                    # Tulis Nama (Bold / Regular)
                     page.insert_text(
-                        rect.tl + fitz.Point(0, 8),  # Sesuaikan baseline
-                        new_txt,
+                        fitz.Point(x_pos, y_base + 9),
+                        target_name,
                         fontsize=9,
                         fontname="helv",
                         color=(0, 0, 0)
                     )
 
-            # Simpan PDF ke buffer
+                    # Tulis NIP
+                    page.insert_text(
+                        fitz.Point(x_pos, y_base + 21),
+                        target_nip,
+                        fontsize=8.5,
+                        fontname="helv",
+                        color=(0, 0, 0)
+                    )
+
+            # Eksekusi pembaruan TTE
+            add_tte_text(bendahara_nama, bendahara_nip, add_tte_bendahara)
+            add_tte_text(ppk_nama, ppk_nip, add_tte_ppk)
+
             output_bytes = doc.tobytes()
             doc.close()
 
-            st.success("PDF berhasil diperbarui tanpa merusak layout!")
+            st.success("Teks TTE berhasil ditambahkan!")
             st.download_button(
-                label="📥 Download PDF SPBY Hasil Edit",
+                label="📥 Download PDF SPBY TTE",
                 data=output_bytes,
-                file_name="SPBY_Edited.pdf",
+                file_name="SPBY_TTE_Edited.pdf",
                 mime="application/pdf"
             )
