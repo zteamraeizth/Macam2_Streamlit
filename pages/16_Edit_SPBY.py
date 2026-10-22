@@ -9,8 +9,16 @@ uploaded_file = st.file_uploader("Upload File PDF SPBY", type=["pdf"])
 if uploaded_file is not None:
     pdf_bytes = uploaded_file.read()
     
-    st.subheader("⚙️ Pengaturan Tanda Tangan Elektronik")
-    
+    # Pengaturan Spasi Vertikal
+    st.subheader("⚙️ Pengaturan Posisi & Jarak Spasi TTE")
+    y_offset_tte = st.slider(
+        "Jarak Teks TTE dari Atas (Offset Y)", 
+        min_value=0, 
+        max_value=30, 
+        value=15, 
+        help="Makin besar nilainya, makin jauh jaraknya dari Jabatan (makin ke bawah)"
+    )
+
     col1, col2 = st.columns(2)
     with col1:
         add_tte_bendahara = st.checkbox("Tambah TTE Bendahara Pengeluaran", value=True)
@@ -34,7 +42,7 @@ if uploaded_file is not None:
                     # Ambil area sekitar nama dan NIP untuk dibersihkan (redact)
                     clean_rect = fitz.Rect(
                         rect.x0 - 2, 
-                        rect.y0 - 14,  # Beri ruang untuk TTE di atas nama
+                        rect.y0 - 25,  # Area pembersihan diperluas ke atas
                         rect.x1 + 60, 
                         rect.y1 + 15
                     )
@@ -43,21 +51,23 @@ if uploaded_file is not None:
                     page.apply_redactions()
 
                     x_pos = rect.x0
-                    y_base = rect.y0
+                    # Posisi dasar nama asli
+                    y_base = rect.y0 
 
-                    # Jika di-centang TTE, tuliskan teks berwarna abu-abu
+                    # Tulis TTE dengan mengatur jarak vertikal
                     if use_tte:
+                        # y_offset_tte memberikan jarak lebih lega dari teks Jabatan di atasnya
                         page.insert_text(
-                            fitz.Point(x_pos, y_base - 2),
+                            fitz.Point(x_pos, y_base - 12 + y_offset_tte),
                             "Ditandatangani secara elektronik",
                             fontsize=8,
                             fontname="helv",
-                            color=(0.4, 0.4, 0.4)  # Warna abu-abu (gray)
+                            color=(0.4, 0.4, 0.4)  # Abu-abu
                         )
 
-                    # Tulis Nama (Bold / Regular)
+                    # Tulis Nama
                     page.insert_text(
-                        fitz.Point(x_pos, y_base + 9),
+                        fitz.Point(x_pos, y_base + y_offset_tte),
                         target_name,
                         fontsize=9,
                         fontname="helv",
@@ -66,7 +76,7 @@ if uploaded_file is not None:
 
                     # Tulis NIP
                     page.insert_text(
-                        fitz.Point(x_pos, y_base + 21),
+                        fitz.Point(x_pos, y_base + 12 + y_offset_tte),
                         target_nip,
                         fontsize=8.5,
                         fontname="helv",
@@ -80,9 +90,9 @@ if uploaded_file is not None:
             output_bytes = doc.tobytes()
             doc.close()
 
-            st.success("Teks TTE berhasil ditambahkan!")
+            st.success("Teks TTE berhasil disesuaikan dengan jarak spasi baru!")
             st.download_button(
-                label="📥 Download PDF SPBY TTE",
+                label="📥 Download PDF SPBY Hasil Edit",
                 data=output_bytes,
                 file_name="SPBY_TTE_Edited.pdf",
                 mime="application/pdf"
