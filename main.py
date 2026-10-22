@@ -24,6 +24,7 @@ with col1:
     - **Status Perjadin**
     - **E-Perjadin**
     - **SPP vs DAPEM (Pencocokan Dokumen)**
+    - **TTE SPBY**
     """)
 
 with col2:
@@ -34,6 +35,9 @@ with col2:
     - **Pembuat Undangan**
     - **Watermark Tool**
     - **Detail Modal & Arsip Data**
+    - **Merge PDF**
+    - **Split Reorder**
+    - **Kalkulator Tagihan PPN**
     """)
 
 st.caption("Pilih menu di sidebar untuk mulai menggunakan fitur.")
