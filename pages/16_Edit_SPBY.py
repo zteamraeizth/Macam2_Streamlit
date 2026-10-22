@@ -1,84 +1,79 @@
-import io
-import streamlit as st
 import fitz  # PyMuPDF
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import streamlit as st
 
-st.set_page_config(page_title="PDF Direct Editor", layout="wide")
+st.set_page_config(page_title="Edit SPBY Presisi", layout="wide")
+st.title("📄 Form Editor SPBY (Layout Utuh)")
 
-st.title("📄 PDF Direct Text Editor (SPBY)")
-st.write("Upload file PDF, edit teksnya secara langsung di Streamlit, lalu buat PDF baru.")
-
-# 1. Upload File PDF
-uploaded_file = st.file_uploader("Upload File PDF SPBY", type=["pdf"])
+uploaded_file = st.file_uploader("Upload File PDF SPBY Asli", type=["pdf"])
 
 if uploaded_file is not None:
-    # Membaca PDF menggunakan PyMuPDF (fitz)
     pdf_bytes = uploaded_file.read()
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     
-    # Ekstraksi teks dari seluruh halaman
-    extracted_text = ""
-    for page in doc:
-        extracted_text += page.get_text() + "\n"
+    # 1. Ekstrak Teks Awal untuk Nilai Default Input Form
+    doc_init = fitz.open(stream=pdf_bytes, filetype="pdf")
+    full_text = doc_init[0].get_text() if len(doc_init) > 0 else ""
+    doc_init.close()
 
-    st.subheader("📝 Area Edit Teks PDF")
+    st.subheader("📝 Edit Field Dokumen SPBY")
     
-    # Text area untuk menyunting konten PDF secara langsung
-    edited_text = st.text_area(
-        "Silahkan sesuaikan/edit teks di bawah ini:",
-        value=extracted_text,
-        height=400
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+        nomor = st.text_input("Nomor SPBY", value="00520/PB/410248/2026")
+        tanggal = st.text_input("Tanggal SPBY", value="22 Oktober 2026")
+        nominal_angka = st.text_input("Nominal (Rp)", value="Rp. 440.000,00")
+        nominal_terbilang = st.text_input("Terbilang", value="Empat Ratus Empat Puluh Ribu Rupiah")
+        kepada = st.text_input("Kepada", value="Happy Yess")
+        mak = st.text_input("Kegiatan, Output, MAK", value="015.04.CC.4791.BMA.521211")
 
-    # 2. Re-generate PDF Baru Menggunakan ReportLab
-    if st.button("🔄 Buat & Simpan PDF Baru"):
-        if edited_text.strip():
-            with st.spinner("Memproses pembuatan PDF baru..."):
-                pdf_buffer = io.BytesIO()
-                doc_pdf = SimpleDocTemplate(
-                    pdf_buffer,
-                    pagesize=A4,
-                    rightMargin=36,
-                    leftMargin=36,
-                    topMargin=36,
-                    bottomMargin=36
-                )
-                
-                styles = getSampleStyleSheet()
-                # Kustomisasi gaya teks agar rapi
-                normal_style = ParagraphStyle(
-                    'PDFStyle',
-                    parent=styles['Normal'],
-                    fontSize=10,
-                    leading=14,
-                    fontName='Helvetica'
-                )
+    with col2:
+        untuk_pembayaran = st.text_area(
+            "Untuk Pembayaran", 
+            value="pembayaran belanja barang berupa pembelian 45 box snack rapat dalam rangka undangan Pembahasan SP2DK dan Pemeriksaan Wajib Pajak sesuai UND-727, UND-730, UND-731, UND-757, UND-760, UND-761, UND-766 pada Happy Yess",
+            height=130
+        )
+        ppk_nama = st.text_input("Nama PPK", value="DEVRI OSKANDAR")
+        bendahara_nama = st.text_input("Nama Bendahara", value="DENDY ISYANDI ALWIYUDIN")
 
-                story = []
-                # Memproses baris demi baris menjadi paragraf PDF
-                lines = edited_text.split('\n')
-                for line in lines:
-                    if line.strip():
-                        # Mengamankan karakter khusus HTML/XML untuk ReportLab
-                        safe_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                        story.append(Paragraph(safe_line, normal_style))
-                    else:
-                        story.append(Spacer(1, 8))
+    # 2. Proses Re-generating PDF dengan Menimpa Teks
+    if st.button("🔄 Generasi PDF Baru (Layout Presisi)"):
+        with st.spinner("Memproses penyuntingan PDF..."):
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            page = doc[0]
 
-                # Build PDF ke memori buffer
-                doc_pdf.build(story)
-                pdf_buffer.seek(0)
+            # Daftar penggantian teks: (Teks Lama yang dicari, Teks Baru)
+            replacements = [
+                ("00520/PB/410248/2026", nomor),
+                ("Happy Yess", kepada),
+                ("015.04.CC.4791.BMA.521211", mak),
+                ("DEVRI OSKANDAR", ppk_nama),
+                ("DENDY ISYANDI ALWIYUDIN", bendahara_nama)
+            ]
 
-                st.success("PDF baru berhasil diproses!")
-                
-                # Button Download
-                st.download_button(
-                    label="📥 Download PDF Hasil Edit",
-                    data=pdf_buffer,
-                    file_name="SPBY_Edited.pdf",
-                    mime="application/pdf"
-                )
-        else:
-            st.warning("Teks tidak boleh kosong.")
+            # Proses pencarian dan penimpaan posisi teks
+            for old_txt, new_txt in replacements:
+                rects = page.search_for(old_txt)
+                for rect in rects:
+                    # Hapus teks lama dengan menutupnya warna putih
+                    page.add_redact_annot(rect, fill=(1, 1, 1))
+                    page.apply_redactions()
+                    
+                    # Tulis teks baru di lokasi koordinat yang sama
+                    page.insert_text(
+                        rect.tl + fitz.Point(0, 8),  # Sesuaikan baseline
+                        new_txt,
+                        fontsize=9,
+                        fontname="helv",
+                        color=(0, 0, 0)
+                    )
+
+            # Simpan PDF ke buffer
+            output_bytes = doc.tobytes()
+            doc.close()
+
+            st.success("PDF berhasil diperbarui tanpa merusak layout!")
+            st.download_button(
+                label="📥 Download PDF SPBY Hasil Edit",
+                data=output_bytes,
+                file_name="SPBY_Edited.pdf",
+                mime="application/pdf"
+            )
