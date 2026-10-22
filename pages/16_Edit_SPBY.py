@@ -5,6 +5,20 @@ import streamlit as st
 st.set_page_config(page_title="Batch Edit Tanda Tangan SPBY", layout="wide")
 st.title("📄 Batch Tambah TTE SPBY")
 
+# Inisialisasi key untuk file uploader jika belum ada
+if "uploader_key" not in st.session_state:
+    st.session_state["uploader_key"] = 0
+
+# Tombol untuk Clear All Files
+col_title, col_clear = st.columns([4, 1])
+with col_clear:
+    if st.button("🗑️ Clear All Files", type="secondary"):
+        # Reset uploader key & hapus data session
+        st.session_state["uploader_key"] += 1
+        st.session_state.pop("processed_files", None)
+        st.session_state.pop("merged_bytes", None)
+        st.rerun()
+
 # Upload Banyak File PDF Sekaligus
 uploaded_files = st.file_uploader(
     "Upload File PDF SPBY", type=["pdf"], accept_multiple_files=True
