@@ -35,29 +35,35 @@ if uploaded_file is not None:
             page = doc[0]
             page_rect = page.rect
 
-            # 1. Cari titik acuan lokasi Bendahara dan PPK sebelum dibersihkan
+            # 1. Cari lokasi acuan teks awal
             rects_bend = page.search_for(bendahara_nama)
             rects_ppk = page.search_for(ppk_nama)
-            rects_dicetak = page.search_for("Dicetak pada tanggal")
 
             y_start = rects_bend[0].y0 if rects_bend else (rects_ppk[0].y0 if rects_ppk else 700)
-            x_bend = rects_bend[0].x0 if rects_bend else 50
-            x_ppk = rects_ppk[0].x0 if rects_ppk else 400
+            
+            # Cari koordinat X asal dari teks Bendahara / PPK (diberi batas kiri aman agar tidak menempel garis)
+            x_bend = rects_bend[0].x0 if rects_bend else 35
+            x_ppk = rects_ppk[0].x0 if rects_ppk else 380
 
-            # 2. HAPUS LENGKAP seluruh area bawah (termasuk garis border lama dan teks dicetak)
-            # Menghapus seluruh bagian paling bawah halaman sampai batas pinggir
+            # 2. Tentukan koordinat presisi garis bingkai luar (Margin standar SPBY KPP)
+            # Koordinat garis luar kiri dan kanan standar dokumen SAKTI/Coretax SPBY
+            margin_left = 18.0   # Tepat sejajar garis bingkai atas
+            margin_right = page_rect.x1 - 18.0
+
+            # 3. Hapus area bawah presisi di DALAM bingkai (tanpa merusak sambungan atas)
             clear_area = fitz.Rect(
-                20,               # x0 dari garis kiri
-                y_start - 10,     # y0 tepat di atas nama lama
-                page_rect.x1 - 20,# x1 sampai garis kanan
-                page_rect.y1 - 10 # y1 sampai bawah halaman
+                margin_left + 1,  # Hapus tepat di dalam garis
+                y_start - 12,     # Tepat di bawah teks 'Bendahara Pengeluaran' & 'PPK'
+                margin_right - 1,
+                page_rect.y1 - 5
             )
             page.add_redact_annot(clear_area, fill=(1, 1, 1))
             page.apply_redactions()
 
-            # 3. TULIS TEKS BARU (TTE, Nama, NIP)
-            # --- BENDAHARA ---
+            # 4. Tulis Teks Baru (TTE, Nama, NIP)
             y_curr = y_start + y_offset_tte
+
+            # --- BENDAHARA ---
             if add_tte_bendahara:
                 page.insert_text(
                     fitz.Point(x_bend, y_curr - 12),
@@ -105,7 +111,7 @@ if uploaded_file is not None:
                 color=(0, 0, 0)
             )
 
-            # 4. TULIS ULANG TEKS "Dicetak pada tanggal..." DI BAWAH NIP
+            # --- DICETAK PADA TANGGAL ---
             y_dicetak = y_curr + 26
             page.insert_text(
                 fitz.Point(x_ppk + 30, y_dicetak),
@@ -115,38 +121,37 @@ if uploaded_file is not None:
                 color=(0, 0, 0)
             )
 
-            # 5. LUKIS ULANG GARIS BINGKAI TABEL LENGKAP
-            # Margin bingkai luar PDF SPBY SAKTI
-            margin_left = 30
-            margin_right = page_rect.x1 - 30
-            new_bottom_y = y_dicetak + 8  # Posisi garis bawah persis di bawah teks dicetak
+            # 5. Lukis Ulang Garis Bingkai (Sambungan Presisi)
+            new_bottom_y = y_dicetak + 8
 
-            # Garis Horizontal Bawah Baru
+            # Garis Vertikal Kiri (Menyambung dari y_start ke bawah)
+            page.draw_line(
+                fitz.Point(margin_left, y_start - 12),
+                fitz.Point(margin_left, new_bottom_y),
+                color=(0, 0, 0),
+                width=0.8
+            )
+
+            # Garis Vertikal Kanan
+            page.draw_line(
+                fitz.Point(margin_right, y_start - 12),
+                fitz.Point(margin_right, new_bottom_y),
+                color=(0, 0, 0),
+                width=0.8
+            )
+
+            # Garis Horizontal Bawah
             page.draw_line(
                 fitz.Point(margin_left, new_bottom_y),
                 fitz.Point(margin_right, new_bottom_y),
                 color=(0, 0, 0),
-                width=1
-            )
-
-            # Garis Vertikal Kiri & Kanan (Menutup kotak sampai ke bawah)
-            page.draw_line(
-                fitz.Point(margin_left, y_start - 10),
-                fitz.Point(margin_left, new_bottom_y),
-                color=(0, 0, 0),
-                width=1
-            )
-            page.draw_line(
-                fitz.Point(margin_right, y_start - 10),
-                fitz.Point(margin_right, new_bottom_y),
-                color=(0, 0, 0),
-                width=1
+                width=0.8
             )
 
             output_bytes = doc.tobytes()
             doc.close()
 
-            st.success("TTE, NIP, teks cetak, dan garis bingkai berhasil diturunkan dengan rapi!")
+            st.success("Kotak bingkai berhasil dirapikan dan tersambung lurus!")
             st.download_button(
                 label="📥 Download PDF SPBY Hasil Edit",
                 data=output_bytes,
