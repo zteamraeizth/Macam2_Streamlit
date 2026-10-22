@@ -187,23 +187,26 @@ if uploaded_files:
                             )
 
                             # --- BINGKAI LOKAL HALAMAN 1 ---
-                            line_y_start = y_start - 13
+                            line_margin_left = margin_left - 2
+                            line_margin_right = margin_right - 2
+                            
+                            line_y_start = y_start - 12.5
                             new_bottom_y = y_dicetak + 8
                             page.draw_line(
-                                fitz.Point(margin_left, line_y_start),
-                                fitz.Point(margin_left, new_bottom_y),
+                                fitz.Point(line_margin_left, line_y_start),
+                                fitz.Point(line_margin_left, new_bottom_y),
                                 color=(0, 0, 0),
                                 width=1.0,
                             )
                             page.draw_line(
-                                fitz.Point(margin_right, line_y_start),
-                                fitz.Point(margin_right, new_bottom_y),
+                                fitz.Point(line_margin_right, line_y_start),
+                                fitz.Point(line_margin_right, new_bottom_y),
                                 color=(0, 0, 0),
                                 width=1.0,
                             )
                             page.draw_line(
-                                fitz.Point(margin_left, new_bottom_y),
-                                fitz.Point(margin_right, new_bottom_y),
+                                fitz.Point(line_margin_left, new_bottom_y),
+                                fitz.Point(line_margin_right, new_bottom_y),
                                 color=(0, 0, 0),
                                 width=1.0,
                             )
