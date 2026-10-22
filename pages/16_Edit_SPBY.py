@@ -187,7 +187,7 @@ if uploaded_files:
                             )
 
                             # --- BINGKAI LOKAL HALAMAN 1 ---
-                            line_margin_left = margin_left + 2
+                            line_margin_left = margin_left + 2.5
                             line_margin_right = margin_right - 2
                             
                             line_y_start = y_start - 12.5
