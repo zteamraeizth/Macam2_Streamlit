@@ -11,7 +11,4 @@ reportlab
 pdf2docx
 python-docx
 docx2pdf
-subprocess
-tempfile
-platform
-st_quill
+streamlit-quill
