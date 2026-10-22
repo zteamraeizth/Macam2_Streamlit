@@ -10,13 +10,12 @@ if uploaded_file is not None:
     pdf_bytes = uploaded_file.read()
     
     st.subheader("⚙️ Pengaturan Posisi & Jarak Spasi TTE")
-    # SliderOffset Y maks diset ke 40
     y_offset_tte = st.slider(
         "Jarak Teks TTE dari Atas (Offset Y)", 
         min_value=0, 
         max_value=40, 
         value=20, 
-        help="Geser untuk mengatur spasi vertikal teks TTE dan NIP"
+        help="Geser untuk mengatur spasi vertikal teks TTE, Nama, NIP, dan titik-titik Penerima Uang"
     )
 
     col1, col2 = st.columns(2)
@@ -36,7 +35,7 @@ if uploaded_file is not None:
             page = doc[0]
             page_rect = page.rect
 
-            # 1. Deteksi Koordinat Asli Teks Sebelum Dihapus
+            # 1. Cari lokasi acuan teks awal
             rects_bend = page.search_for(bendahara_nama)
             rects_ppk = page.search_for(ppk_nama)
             rects_penerima = page.search_for("Penerima Uang")
@@ -46,29 +45,22 @@ if uploaded_file is not None:
             x_ppk = rects_ppk[0].x0 if rects_ppk else 380
             x_penerima = rects_penerima[0].x0 if rects_penerima else 210
 
-            # Margin bingkai luar resmi SPBY SAKTI
+            # Margin luar garis bingkai resmi PDF SAKTI
             margin_left = 18.0
             margin_right = page_rect.x1 - 18.0
 
-            # 2. Redact Presisi (HANYA teks nama, NIP lama, dan footer cetak, tanpa menghapus titik-titik tengah)
-            # A. Redact Nama & NIP Bendahara
-            page.add_redact_annot(
-                fitz.Rect(x_bend - 2, y_start - 12, x_bend + 140, y_start + 30),
-                fill=(1, 1, 1)
+            # 2. HAPUS BERSIH seluruh area bawah dari y_start sampai dasar halaman
+            # Ini memastikan titik-titik lama dan garis lama terhapus total tanpa tersisa
+            clear_rect = fitz.Rect(
+                margin_left + 0.5, 
+                y_start - 12, 
+                margin_right - 0.5, 
+                page_rect.y1 - 5
             )
-            # B. Redact Nama & NIP PPK + Footer Cetak
-            page.add_redact_annot(
-                fitz.Rect(x_ppk - 2, y_start - 12, margin_right - 2, page_rect.y1 - 5),
-                fill=(1, 1, 1)
-            )
-            # C. Hapus Garis Bawah Lama Saja
-            page.add_redact_annot(
-                fitz.Rect(margin_left - 2, y_start + 25, margin_right + 2, page_rect.y1 - 5),
-                fill=(1, 1, 1)
-            )
+            page.add_redact_annot(clear_rect, fill=(1, 1, 1))
             page.apply_redactions()
 
-            # 3. Tulis Kembali Teks TTE, Nama, NIP
+            # 3. TULIS TEKS BARU (TTE, Nama, NIP, & Titik-titik Penerima Uang)
             y_curr = y_start + y_offset_tte
 
             # --- KOLOM BENDAHARA ---
@@ -95,17 +87,18 @@ if uploaded_file is not None:
                 color=(0, 0, 0)
             )
 
-            # --- KOLOM PENERIMA UANG (Titik-Titik Sesuai Gambar 2) ---
-            # Dua baris titik-titik sejajar presisi dengan posisi asli
+            # --- KOLOM PENERIMA UANG (Selalu Sejajar Vertikal dengan Nama Dendy) ---
+            # Baris 1: Sejajar persis dengan baseline Nama Dendy/Devri
             page.insert_text(
-                fitz.Point(x_penerima, y_start + 12),
+                fitz.Point(x_penerima, y_curr - 2),
                 "...................................................",
                 fontsize=8,
                 fontname="helv",
                 color=(0, 0, 0)
             )
+            # Baris 2: Sejajar persis dengan baseline NIP
             page.insert_text(
-                fitz.Point(x_penerima, y_start + 26),
+                fitz.Point(x_penerima, y_curr + 12),
                 "...................................................",
                 fontsize=8,
                 fontname="helv",
@@ -137,7 +130,7 @@ if uploaded_file is not None:
             )
 
             # --- FOOTER DICETAK PADA TANGGAL ---
-            y_dicetak = max(y_curr + 24, y_start + 36)
+            y_dicetak = y_curr + 24
             page.insert_text(
                 fitz.Point(x_ppk + 30, y_dicetak),
                 "Dicetak pada tanggal 22 Oktober 2026",
@@ -146,23 +139,25 @@ if uploaded_file is not None:
                 color=(0, 0, 0)
             )
 
-            # 4. Sambungkan Garis Bingkai Luar Presisi
-            new_bottom_y = y_dicetak + 8
+            # 4. SAMBUNGKAN BINGKAI LOKAL DENGAN UJUNG GARIS ASLI
+            # Menggunakan width=1.0 sesuai ketebalan garis standar SAKTI
+            line_y_start = y_start - 12.5  # Titik temu ujung garis vertikal atas
+            new_bottom_y = y_dicetak + 8    # Posisi penutup bawah
 
             # Garis Vertikal Kiri
             page.draw_line(
-                fitz.Point(margin_left, y_start - 10),
+                fitz.Point(margin_left, line_y_start),
                 fitz.Point(margin_left, new_bottom_y),
                 color=(0, 0, 0),
-                width=0.75
+                width=1.0
             )
 
             # Garis Vertikal Kanan
             page.draw_line(
-                fitz.Point(margin_right, y_start - 10),
+                fitz.Point(margin_right, line_y_start),
                 fitz.Point(margin_right, new_bottom_y),
                 color=(0, 0, 0),
-                width=0.75
+                width=1.0
             )
 
             # Garis Horizontal Penutup Bawah
@@ -170,13 +165,13 @@ if uploaded_file is not None:
                 fitz.Point(margin_left, new_bottom_y),
                 fitz.Point(margin_right, new_bottom_y),
                 color=(0, 0, 0),
-                width=0.75
+                width=1.0
             )
 
             output_bytes = doc.tobytes()
             doc.close()
 
-            st.success("Tata letak TTE, titik-titik Penerima Uang, dan bingkai berhasil dirapikan!")
+            st.success("Tata letak TTE, titik-titik Penerima Uang, dan ujung garis bingkai berhasil menyambung presisi!")
             st.download_button(
                 label="📥 Download PDF SPBY Hasil Edit",
                 data=output_bytes,
