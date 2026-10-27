@@ -255,3 +255,305 @@
     "halaman_ref": "Halaman 28–30 (Konsep PBB Sektor P5L)"
   }
 ]
+[
+  {
+    "id": 21,
+    "modul": "Konsep Dasar & Standar Pemeriksaan Pajak",
+    "tipe": "Studi Kasus",
+    "soal": "Dalam pemeriksaan atas PT Karya Nusa, Tim Pemeriksa menerbitkan Surat Pemberitahuan Penolakan Pemeriksaan karena Wajib Pajak menolak memberikan akses pada aplikasi akuntansi utama. Berdasarkan UU KUP jo PER-23/PJ/2013, langkah hukum lanjutan yang harus diambil oleh Kepala UP2 adalah:",
+    "opsi": [
+      "A. Membatalkan Surat Perintah Pemeriksaan (SP2)",
+      "B. Menetapkannya sebagai Pemeriksaan Bukti Permulaan atau menetapkan pajak secara jabatan (ex officio)",
+      "C. Memberikan Surat Peringatan Pertama dengan tenggat 30 hari",
+      "D. Menangguhkan pemeriksaan sampai WP bersedia"
+    ],
+    "kunci": "B",
+    "pembahasan": "Dalam hal Wajib Pajak menolak pemeriksaan atau tidak memberikan akses/dokumen yang diperlukan sehingga menghambat pengujian, Tim Pemeriksa membuat Berita Acara Penolakan. Berdasarkan ketentuan UU KUP, tindakan selanjutnya adalah menetapkan penghasilan kena pajak secara jabatan (ex officio) atau mengusulkan Pemeriksaan Bukti Permulaan.",
+    "halaman_ref": "Halaman 22–24 (Prosedur Penolakan & Penetapan Jabatan)"
+  },
+  {
+    "id": 22,
+    "modul": "PMK 15/2025 tentang Pemeriksaan Pajak",
+    "tipe": "Hafalan",
+    "soal": "Berdasarkan PMK 15 Tahun 2025, apabila terdapat perpanjangan Jangka Waktu Pengujian untuk Pemeriksaan Uji Kepatuhan Tipe Lengkap, perpanjangan tersebut dapat diberikan untuk jangka waktu paling lama:",
+    "opsi": [
+      "A. 1 Bulan",
+      "B. 2 Bulan",
+      "C. 3 Bulan",
+      "D. 4 Bulan"
+    ],
+    "kunci": "B",
+    "pembahasan": "Sesuai PMK 15/2025 Pasal 7, perpanjangan jangka waktu pengujian untuk Tipe Lengkap dapat dilakukan paling lama 2 bulan dengan alasan tertentu (seperti perluasan pemeriksaan atau tanggapan konfirmasi dari pihak ketiga).",
+    "halaman_ref": "Halaman 67–68 (PMK 15/2025 - Perpanjangan Jangka Waktu Pengujian)"
+  },
+  {
+    "id": 23,
+    "modul": "PMK 15/2025 tentang Pemeriksaan Pajak",
+    "tipe": "Studi Kasus",
+    "soal": "Tim Pemeriksa Pajak menyajikan Surat Pemberitahuan Hasil Pemeriksaan (SPHP) kepada PT Maju Bersama. Wajib Pajak tidak menyampaikan surat sanggahan tertulis dan tidak hadir pada jadwal Pembahasan Akhir (Closing Conference). Bagaimana kewajiban Tim Pemeriksa selanjutnya?",
+    "opsi": [
+      "A. Melakukan pemanggilan ulang WP sebanyak 3 kali berturut-turut",
+      "B. Membuat Berita Acara Ketidakhadiran WP dan langsung menandatangani Laporan Hasil Pemeriksaan (LHP)",
+      "C. Menganggap temuan pemeriksaan batal demi hukum",
+      "D. Menerbitkan SP2U (Surat Perintah Pemeriksaan Ulang)"
+    ],
+    "kunci": "B",
+    "pembahasan": "Apabila Wajib Pajak tidak menyampaikan sanggahan tertulis dan tidak hadir dalam Pembahasan Akhir Hasil Pemeriksaan sesuai jadwal yang ditentukan, Tim Pemeriksa membuat Berita Acara Ketidakhadiran WP dan menyatukan temuan SPHP sebagai dasar penerbitan LHP.",
+    "halaman_ref": "Halaman 72–74 (PMK 15/2025 - Pembahasan Akhir & Berita Acara)"
+  },
+  {
+    "id": 24,
+    "modul": "Metode, Teknik & Data Konkret",
+    "tipe": "Studi Kasus",
+    "soal": "Pemeriksa Pajak menggunakan Metode Tidak Langsung Pendekatan Pertambahan Kekayaan Bersih (Net Worth Method) untuk menguji Wajib Pajak Orang Pribadi. Data mencatat: Kekayaan Bersih Akhir Tahun = Rp2,5 Miliar, Kekayaan Bersih Awal Tahun = Rp1,8 Miliar, Pengeluaran Hidup (Living Expenses) = Rp400 Juta, dan Penghasilan Bebas Pajak = Rp50 Juta. Berapakah Penghasilan Bruto Hasil Perhitungan Metode Tidak Langsung?",
+    "opsi": [
+      "A. Rp 1.050.000.000",
+      "B. Rp 1.100.000.000",
+      "C. Rp 700.000.000",
+      "D. Rp 1.150.000.000"
+    ],
+    "kunci": "A",
+    "pembahasan": "Rumus Net Worth Method:\nKenaikan Kekayaan Bersih = Rp2,5 M - Rp1,8 M = Rp700 Juta.\nPenghasilan Menurut Metode = Kenaikan Kekayaan Bersih + Pengeluaran Hidup - Penghasilan Bebas Pajak\n= Rp700 Juta + Rp400 Juta - Rp50 Juta = Rp1.050.000.000.",
+    "halaman_ref": "Halaman 15–16 (Metode Tidak Langsung & Formulasi Net Worth)"
+  },
+  {
+    "id": 25,
+    "modul": "Metode, Teknik & Data Konkret",
+    "tipe": "Hafalan",
+    "soal": "Berdasarkan PER-18/PJ/2025, data konkret yang diprioritaskan untuk langsung ditindaklanjuti dengan Pemeriksaan Tipe Spesifik mencakup hal-hal berikut, KECUALI:",
+    "opsi": [
+      "A. Bukti potong/pungut yang dilaporkan pihak ketiga tetapi tidak dilaporkan penerima penghasilan",
+      "B. Faktur Pajak yang sudah dikreditkan tetapi tidak dilaporkan oleh penerbit (Faktur Pajak Fiktif / Tidak Sah)",
+      "C. Hasil analisis estimasi potensi bisnis berdasarkan asumsi kualitatif AR",
+      "D. Data transaksi keuangan dari Lembaga Jasa Keuangan yang valid"
+    ],
+    "kunci": "C",
+    "pembahasan": "Data konkret sesuai PER-18/PJ/2025 adalah data yang bersifat pasti, dapat diuji secara terbuka, dan tidak memerlukan analisis mendalam berbasis asumsi kualitatif. Asumsi kualitatif AR tergolong data potensi/indikasi, bukan data konkret.",
+    "halaman_ref": "Halaman 11–13 (PER-18/PJ/2025 - Kriteria Data Konkret)"
+  },
+  {
+    "id": 26,
+    "modul": "Pajak Bumi dan Bangunan Sektor P5L",
+    "tipe": "Studi Kasus",
+    "soal": "PT Sawit Makmur mengelola lahan perkebunan. Pada tahun berjalan, terdapat Areal Belum Menghasilkan (ABM) setinggi 100 Ha dengan Biaya Investasi Tanaman (BIT) sebesar Rp8.000/m². Apabila NJOP Tanah Dasar Perkebunan adalah Rp15.000/m², berapakah NJOP Bumi per m² untuk Areal Belum Menghasilkan tersebut?",
+    "opsi": [
+      "A. Rp 8.000 / m²",
+      "B. Rp 15.000 / m²",
+      "C. Rp 23.000 / m²",
+      "D. Rp 7.000 / m²"
+    ],
+    "kunci": "C",
+    "pembahasan": "Berdasarkan PMK 186/2019 jo PMK 234/2022, NJOP Bumi untuk Areal Belum Menghasilkan (ABM) atau Areal Menghasilkan (AM) pada PBB Perkebunan dihitung dengan menjumlahkan NJOP Tanah Dasar dengan Biaya Investasi Tanaman (BIT). Maka NJOP Bumi = Rp15.000 + Rp8.000 = Rp23.000/m².",
+    "halaman_ref": "Halaman 33–36 (Penghitungan NJOP Bumi Sektor Perkebunan P5L)"
+  },
+  {
+    "id": 27,
+    "modul": "Pajak Bumi dan Bangunan Sektor P5L",
+    "tipe": "Hafalan",
+    "soal": "Berdasarkan UU PBB jo PMK 186/2019, besarnya Tarif PBB Sektor P5L yang berlaku seragam untuk seluruh objek pajak P5L adalah:",
+    "opsi": [
+      "A. 0,1%",
+      "B. 0,3%",
+      "C. 0,5%",
+      "D. 2,0%"
+    ],
+    "kunci": "C",
+    "pembahasan": "Tarif PBB Sektor P5L (Perkebunan, Perhutanan, Pertambangan P5L) yang dikelola oleh Pemerintah Pusat (DJP) bersifat tunggal yaitu sebesar 0,5% (nol koma lima persen).",
+    "halaman_ref": "Halaman 30 & Halaman 57 (Tarif dan NJKP PBB P5L)"
+  },
+  {
+    "id": 28,
+    "modul": "Pajak Bumi dan Bangunan Sektor P5L",
+    "tipe": "Hafalan",
+    "soal": "Dalam menghitung PBB Terutang Sektor P5L, persentase Nilai Jual Kena Pajak (NJKP) yang ditetapkan untuk objek pajak PBB P5L adalah:",
+    "opsi": [
+      "A. 20%",
+      "B. 40%",
+      "C. 50%",
+      "D. 100%"
+    ],
+    "kunci": "B",
+    "pembahasan": "Berdasarkan aturan PBB P5L, persentase NJKP untuk penetapan PBB Sektor P5L adalah sebesar 40% dari NJOP (setelah dikurangi NJOPTKP jika ada).",
+    "halaman_ref": "Halaman 30 & Halaman 57 (Penetapan NJKP PBB P5L)"
+  },
+  {
+    "id": 29,
+    "modul": "SE-9/PJ/2026 tentang Akses Informasi Keuangan (IBK)",
+    "tipe": "Studi Kasus",
+    "soal": "KPP Pratama menerbitkan Surat Permintaan Informasi dan/atau Bukti Keterangan (IBK) kepada Bank Y atas nasabah A. Bank Y menolak memberikan data transaksi dengan alasan memegang teguh rahasia bank sesuai UU Perbankan. Apakah alasan penolakan Bank Y dapat dibenarkan menurut SE-9/PJ/2026?",
+    "opsi": [
+      "A. Dibenarkan, karena UU Perbankan berkedudukan lebih tinggi dari Peraturan Menteri Keuangan",
+      "B. Tidak dibenarkan, karena ketentuan kerahasiaan bank dikesampingkan untuk kepentingan perpajakan sesuai UU KUP & UU Akses Informasi Keuangan",
+      "C. Dibenarkan, selama nasabah tidak memberikan persetujuan tertulis",
+      "D. Dibenarkan, apabila nilai rekening di bawah Rp 1 Miliar"
+    ],
+    "kunci": "B",
+    "pembahasan": "Berdasarkan UU KUP, UU No. 9 Tahun 2017, dan SE-9/PJ/2026, kerahasiaan bank dikesampingkan (overridden) demi pelaksanaan undang-undang di bidang perpajakan. LJK tidak dapat menggunakan pasal kerahasiaan bank sebagai alasan menolak permintaan IBK dari DJP.",
+    "halaman_ref": "Halaman 82–85 & Halaman 102 (Pengecualian Kerahasiaan Bank)"
+  },
+  {
+    "id": 30,
+    "modul": "SE-9/PJ/2026 tentang Akses Informasi Keuangan (IBK)",
+    "tipe": "Hafalan",
+    "soal": "Surat Permintaan IBK dari KPP kepada Lembaga Jasa Keuangan (LJK) disahkan dan ditandatangani oleh pejabat teknis yaitu:",
+    "opsi": [
+      "A. Account Representative Senior",
+      "B. Ketua Tim Pemeriksa Pajak",
+      "C. Kepala KPP atau Pejabat yang Ditunjuk atas nama Direktur Jenderal Pajak",
+      "D. Kepala Kanwil DJP setempat"
+    ],
+    "kunci": "C",
+    "pembahasan": "Permintaan IBK resmi kepada LJK diterbitkan atas nama Direktur Jenderal Pajak dan ditandatangani oleh Kepala KPP atau Pejabat DJP yang berwenang.",
+    "halaman_ref": "Halaman 95–98 (Wewenang Penerbitan Surat Permintaan IBK)"
+  },
+  {
+    "id": 31,
+    "modul": "PMK 111/2025 tentang Pengawasan Kepatuhan WP",
+    "tipe": "Studi Kasus",
+    "soal": "Account Representative (AR) menerbitkan SP2DK atas perbedaan data omzet pada SPT PPh Badan dengan Faktur Pajak Keluaran PPN. Wajib Pajak merespon dan memberikan klarifikasi yang disertai bukti sah bahwa perbedaan tersebut terjadi akibat penyerahan yang mendapat fasilitas PPN tidak dipungut. Apa rekomendasi LHPg yang wajib dibuat AR?",
+    "opsi": [
+      "A. Pengusulan Pemeriksaan Uji Kepatuhan Tipe Lengkap",
+      "B. Penerbitan Surat Penghentian Pengawasan (Pengawasan Selesai / Sesuai)",
+      "C. Pengusulan Pemeriksaan Bukti Permulaan",
+      "D. Penerbitan SP2DK Kedua"
+    ],
+    "kunci": "B",
+    "pembahasan": "Apabila klarifikasi dan dokumen pendukung Wajib Pajak dapat membuktikan bahwa tidak ada ketidakpatuhan atau selisih telah tervalidasi secara sah, maka AR menutup pengawasan dengan rekomendasi LHPg 'Sesuai / Pengawasan Selesai'.",
+    "halaman_ref": "Halaman 165–168 (PMK 111/2025 - Tindak Lanjut Hasil SP2DK)"
+  },
+  {
+    "id": 32,
+    "modul": "PMK 111/2025 tentang Pengawasan Kepatuhan WP",
+    "tipe": "Hafalan",
+    "soal": "Berdasarkan PMK 111/2025, jangka waktu penyelesaian pengawasan kepatuhan Wajib Pajak sejak penerbitan SP2DK sampai dengan penyusunan LHPg diselesaikan paling lama:",
+    "opsi": [
+      "A. 30 Hari",
+      "B. 60 Hari",
+      "C. 90 Hari",
+      "D. 120 Hari"
+    ],
+    "kunci": "C",
+    "pembahasan": "Sesuai PMK 111/2025, seluruh rangkaian proses kegiatan pengawasan berbasis SP2DK diselesaikan dalam jangka waktu paling lama 90 hari kalender sejak SP2DK diterbitkan hingga LHPg disetujui.",
+    "halaman_ref": "Halaman 170–172 (PMK 111/2025 - Jangka Waktu Pengawasan)"
+  },
+  {
+    "id": 33,
+    "modul": "Pokok Pengumuman Ukom JF PKN 2026",
+    "tipe": "Hafalan",
+    "soal": "Berdasarkan Pengumuman PENG-653/P3/PJ.01/2026, pendaftaran Uji Kompetensi Gelombang IV Tahun 2026 dilaksanakan secara mandiri oleh pegawai melalui aplikasi:",
+    "opsi": [
+      "A. Coretax DJP",
+      "B. SIAP-PNS / Sikertas",
+      "C. Portal E-SOP & E-Ukom (SIKKA)",
+      "D. SAKTI Kemenkeu"
+    ],
+    "kunci": "C",
+    "pembahasan": "Pendaftaran dan pemutakhiran data peserta Uji Kompetensi JF PKN dilakukan secara elektronik melalui Portal Kepegawaian (SIKKA / E-Ukom).",
+    "halaman_ref": "Halaman 1 (PENG-653/2026 - Tata Cara Pendaftaran)"
+  },
+  {
+    "id": 34,
+    "modul": "Konsep Dasar & Standar Pemeriksaan Pajak",
+    "tipe": "Hafalan",
+    "soal": "Di bawah ini adalah kewajiban Pemeriksa Pajak pada saat melakukan Pemeriksaan Lapangan, KECUALI:",
+    "opsi": [
+      "A. Memperlihatkan Tanda Pengenal Pemeriksa dan Surat Perintah Pemeriksaan (SP2)",
+      "B. Menyampaikan Surat Pemberitahuan Pemeriksaan Lapangan",
+      "C. Memaksa menyita aset fisik WP tanpa permohonan penetapan pengadilan pada tahap awal",
+      "D. Menjelaskan alasan dan tujuan pemeriksaan kepada Wajib Pajak"
+    ],
+    "kunci": "C",
+    "pembahasan": "Pemeriksa Pajak dalam pemeriksaan kepatuhan tidak memiliki wewenang menyita aset secara paksa di awal tanpa prosedur hukum penagihan aktif/bukper. Pemeriksa wajib memperlihatkan ID Card, SP2, dan menjelaskan tujuan pemeriksaan.",
+    "halaman_ref": "Halaman 20–21 (Hak dan Kewajiban Pemeriksa)"
+  },
+  {
+    "id": 35,
+    "modul": "PMK 15/2025 tentang Pemeriksaan Pajak",
+    "tipe": "Studi Kasus",
+    "soal": "PT Astra Prima diperiksa atas pengembalian pendahuluan kelebihan pembayaran pajak (Restitusi Pasal 17B UU KUP). Berdasarkan PMK 15/2025, tipe pemeriksaan dan jangka waktu pengujian yang paling tepat digunakan adalah:",
+    "opsi": [
+      "A. Tipe Lengkap dengan pengujian paling lama 5 Bulan",
+      "B. Tipe Terfokus atau Spesifik Restitusi dengan batas waktu disesuaikan jatuh tempo penerbitan SKPLB (12 bulan)",
+      "C. Tipe Sewaktu-waktu dengan pengujian 1 bulan",
+      "D. Tipe Jabatan Tanpa Pengujian"
+    ],
+    "kunci": "B",
+    "pembahasan": "Pemeriksaan Restitusi Pasal 17B UU KUP dilaksanakan dengan memperhatikan batas waktu hukum penerbitan SKPLB (paling lama 12 bulan sejak permohonan diterima lengkap).",
+    "halaman_ref": "Halaman 66–67 (PMK 15/2025 - Pemeriksaan Hak WP/Restitusi)"
+  },
+  {
+    "id": 36,
+    "modul": "PMK 15/2025 tentang Pemeriksaan Pajak",
+    "tipe": "Hafalan",
+    "soal": "Dokumen yang diterbitkan oleh Kepala UP2 sebagai dasar hukum dimulainya kegiatan Pemeriksaan Pajak dinamakan:",
+    "opsi": [
+      "A. Surat Pemberitahuan Pemeriksaan (SPemb)",
+      "B. Surat Perintah Pemeriksaan (SP2)",
+      "C. Surat Tugas Pengujian Lapangan",
+      "D. Surat Instruksi Pemeriksaan (SIP)"
+    ],
+    "kunci": "B",
+    "pembahasan": "Surat Perintah Pemeriksaan (SP2) adalah surat perintah yang diterbitkan oleh Kepala UP2 kepada Tim Pemeriksa untuk melakukan pemeriksaan pajak atas Wajib Pajak.",
+    "halaman_ref": "Halaman 3 & Halaman 64 (Definisi SP2)"
+  },
+  {
+    "id": 37,
+    "modul": "Metode, Teknik & Data Konkret",
+    "tipe": "Studi Kasus",
+    "soal": "Dalam menguji kewajaran biaya operasional PT Retail Utama, Pemeriksa Pajak membandingkan rasio Biaya Usaha terhadap Peredaran Bruto perusahaan dengan rata-rata rasio industri sejenis (Benchmark Behavioral Model). Teknik pemeriksaan ini tergolong ke dalam:",
+    "opsi": [
+      "A. Teknik Penelusuran Bukti (Vouching)",
+      "B. Teknik Analisis Rasio / Analisis Komparatif",
+      "C. Teknik Inspeksi Lapangan",
+      "D. Teknik Konfirmasi Pihak Ketiga"
+    ],
+    "kunci": "B",
+    "pembahasan": "Pembandingan rasio keuangan Wajib Pajak dengan norma industri atau Wajib Pajak sejenis tergolong dalam Teknik Analisis Rasio / Analisis Komparatif dalam metode pemeriksaan.",
+    "halaman_ref": "Halaman 14–15 (Teknik-Teknik Pemeriksaan Pajak)"
+  },
+  {
+    "id": 38,
+    "modul": "Pajak Bumi dan Bangunan Sektor P5L",
+    "tipe": "Studi Kasus",
+    "soal": "PT Hutan Lestari mengelola bidang pertambangan batubara. Areal pelabuhan/dermaga khusus pengangkutan batubara (jetty) yang terletak di atas perairan laut masuk dalam klasifikasi objek PBB P5L sektor:",
+    "opsi": [
+      "A. Perkebunan Areal Perairan",
+      "B. Pertambangan Batubara Areal Off-Shore / Areal Perairan Tambang",
+      "C. PBB P2 Daerah",
+      "D. Objek Bebas PBB"
+    ],
+    "kunci": "B",
+    "pembahasan": "Prasarana dan bangunan perairan yang terikat dengan operasional pertambangan P5L (seperti dermaga khusus/jetty batubara) merupakan wilayah areal perairan PBB Sektor Pertambangan P5L yang wewenang pemajakannya ada pada DJP.",
+    "halaman_ref": "Halaman 40–43 (PBB Pertambangan Batubara & Areal Perairan)"
+  },
+  {
+    "id": 39,
+    "modul": "SE-9/PJ/2026 tentang Akses Informasi Keuangan (IBK)",
+    "tipe": "Hafalan",
+    "soal": "Penyampaian data laporan keuangan dan rekening secara otomatis (Automatic Exchange of Information - AEOI) dari LJK kepada DJP dilakukan setiap tahun paling lambat pada tanggal:",
+    "opsi": [
+      "A. 31 Maret tahun berikutnya",
+      "B. 30 April tahun berikutnya",
+      "C. Akhir bulan April untuk LJK Domestik / Akhir bulan Mei untuk Pelaporan Internasional",
+      "D. 31 Desember tahun berjalan"
+    ],
+    "kunci": "C",
+    "pembahasan": "Berdasarkan aturan pelaporan AEOI dan SE-9/PJ/2026, batas waktu pelaporan otomatis LJK domestik diselesaikan paling lambat akhir bulan April, sedangkan untuk tujuan pertukaran internasional paling lambat akhir bulan Mei.",
+    "halaman_ref": "Halaman 88–91 (Jadwal Pelaporan AEOI & Akses Otomatis)"
+  },
+  {
+    "id": 40,
+    "modul": "PMK 111/2025 tentang Pengawasan Kepatuhan WP",
+    "tipe": "Studi Kasus",
+    "soal": "Apabila Wajib Pajak menyampaikan respon atas SP2DK namun menyatakan TIDAK SETUJU atas seluruh indikasi ketidakpatuhan tanpa disertai bukti/dokumen yang memadai, tindakan yang paling tepat dilakukan AR dalam LHPg adalah:",
+    "opsi": [
+      "A. Membatalkan SP2DK secara langsung",
+      "B. Mengusulkan tindakan Pemeriksaan Uji Kepatuhan",
+      "C. Menerbitkan Surat Tagihan Pajak (STP) Jabatan",
+      "D. Membiarkan berkas pengawasan sampai kadaluarsa"
+    ],
+    "kunci": "B",
+    "pembahasan": "Jika WP menolak indikasi dalam SP2DK namun tidak memberikan argumen/dokumen bukti yang memadai untuk menyanggah indikasi tersebut, AR menindaklanjuti dengan mengusulkan kegiatan Pemeriksaan Uji Kepatuhan melalui LHPg.",
+    "halaman_ref": "Halaman 166–169 (PMK 111/2025 - Pengusulan Pemeriksaan dari Pengawasan)"
+  }
+]
