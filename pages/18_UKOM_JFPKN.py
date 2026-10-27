@@ -210,6 +210,101 @@ else:
 
         st.markdown("---")
 
+    # ---------------------------------------------------------
+    # NAVIGASI SOAL: SEBELUMNYA DAN BERIKUTNYA
+    # ---------------------------------------------------------
+    if mode_tampilan == "Mode Per-Soal (Satu per Halaman)":
+        st.markdown("### Navigasi Soal")
+
+        col_prev, col_info, col_next = st.columns([1, 2, 1])
+
+        with col_prev:
+            if st.button(
+                "⬅️ Sebelumnya",
+                disabled=(
+                    total_tersedia == 0
+                    or st.session_state["current_idx"] <= 0
+                ),
+                use_container_width=True,
+                key="prev_single",
+            ):
+                st.session_state["current_idx"] -= 1
+                st.rerun()
+
+        with col_info:
+            if total_tersedia > 0:
+                st.markdown(
+                    f"<div style='text-align:center'>"
+                    f"Soal {st.session_state['current_idx'] + 1} "
+                    f"dari {total_soal}</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.info("Tidak ada soal.")
+
+        with col_next:
+            if st.button(
+                "Berikutnya ➡️",
+                disabled=(
+                    total_tersedia == 0
+                    or st.session_state["current_idx"] >= total_soal - 1
+                ),
+                use_container_width=True,
+                key="next_single",
+            ):
+                st.session_state["current_idx"] += 1
+                st.rerun()
+
+    elif mode_tampilan in [
+        "Mode Per 10 Soal (Pagination)",
+        "Mode Per 20 Soal (Pagination)",
+    ]:
+        soal_per_halaman = (
+            10
+            if mode_tampilan == "Mode Per 10 Soal (Pagination)"
+            else 20
+        )
+
+        total_halaman = max(
+            1,
+            (total_tersedia + soal_per_halaman - 1)
+            // soal_per_halaman,
+        )
+
+        st.markdown("### Navigasi Halaman")
+
+        col_prev, col_info, col_next = st.columns([1, 2, 1])
+
+        with col_prev:
+            if st.button(
+                "⬅️ Sebelumnya",
+                disabled=st.session_state["current_page"] <= 0,
+                use_container_width=True,
+                key="prev_page",
+            ):
+                st.session_state["current_page"] -= 1
+                st.rerun()
+
+        with col_info:
+            st.markdown(
+                f"<div style='text-align:center'>"
+                f"Halaman {st.session_state['current_page'] + 1} "
+                f"dari {total_halaman}</div>",
+                unsafe_allow_html=True,
+            )
+
+        with col_next:
+            if st.button(
+                "Berikutnya ➡️",
+                disabled=(
+                    st.session_state["current_page"] >= total_halaman - 1
+                ),
+                use_container_width=True,
+                key="next_page",
+            ):
+                st.session_state["current_page"] += 1
+                st.rerun()
+
     # -----------------------------------------------------------------------------
     # REKAP PEROLEHAN NILAI (MENGGUNAKAN JAWABAN PERTAMA)
     # -----------------------------------------------------------------------------
