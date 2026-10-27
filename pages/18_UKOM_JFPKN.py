@@ -8,7 +8,6 @@ st.set_page_config(
     page_title="Bank Soal UKOM JF PKN 2026", page_icon="📚", layout="wide"
 )
 
-
 # -----------------------------------------------------------------------------
 # MEMBACA FILE SOAL JSON LOKAL
 # -----------------------------------------------------------------------------
@@ -27,7 +26,6 @@ def load_bank_soal():
             st.error(f"Gagal membaca file JSON: {e}")
             return []
     return []
-
 
 BANK_SOAL = load_bank_soal()
 
@@ -54,14 +52,14 @@ else:
     selected_tipe = st.sidebar.selectbox("Pilih Tipe Soal:", tipe_options)
 
     # Filtering Logic
-    filtered_soal = BANK_SOAL.copy()
+    soal_terfilter = BANK_SOAL.copy()
     if selected_modul != "Semua Modul":
-        filtered_soal = [
-            s for s in filtered_soal if s.get("modul") == selected_modul
+        soal_terfilter = [
+            s for s in soal_terfilter if s.get("modul") == selected_modul
         ]
     if selected_tipe != "Semua Tipe":
-        filtered_soal = [
-            s for s in filtered_soal if s.get("tipe") == selected_tipe
+        soal_terfilter = [
+            s for s in soal_terfilter if s.get("tipe") == selected_tipe
         ]
 
     st.sidebar.markdown("---")
@@ -77,20 +75,22 @@ else:
         ],
     )
 
-# Inisialisasi status pengacakan
-if "shuffle_key" not in st.session_state:
-    st.session_state["shuffle_key"] = 0
+    # Inisialisasi status pengacakan
+    if "shuffle_key" not in st.session_state:
+        st.session_state["shuffle_key"] = 0
 
-if st.button("🔀 Acak Urutan Soal", use_container_width=True):
-    st.session_state["shuffle_key"] += 1
-    st.session_state["current_idx"] = 0
-    st.session_state["current_page"] = 0
-    st.rerun()
-    
-soal_ditampilkan = soal_terfilter.copy()
+    if st.button("🔀 Acak Urutan Soal", use_container_width=True):
+        st.session_state["shuffle_key"] += 1
+        st.session_state["current_idx"] = 0
+        st.session_state["current_page"] = 0
+        st.rerun()
+        
+    # Terapkan pengacakan pada soal terfilter
+    active_soal_list = soal_terfilter.copy()
+    rng = random.Random(st.session_state["shuffle_key"])
+    rng.shuffle(active_soal_list)
 
-rng = random.Random(st.session_state["shuffle_key"])
-rng.shuffle(soal_ditampilkan)    
+    total_tersedia = len(active_soal_list)
 
     # Inisialisasi State Jawaban & Percobaan Pertama
     if "user_answers" not in st.session_state:
