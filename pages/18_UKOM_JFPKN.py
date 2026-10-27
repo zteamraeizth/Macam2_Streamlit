@@ -77,24 +77,20 @@ else:
         ],
     )
 
-    is_random = st.sidebar.checkbox("🔀 Acak Urutan Soal", value=False)
-    filter_key = f"{selected_modul}_{selected_tipe}_{is_random}_{mode_tampilan}"
+# Inisialisasi status pengacakan
+if "shuffle_key" not in st.session_state:
+    st.session_state["shuffle_key"] = 0
 
-    if (
-        "shuffled_soal" not in st.session_state
-        or st.session_state.get("last_filter_key") != filter_key
-    ):
-        st.session_state["last_filter_key"] = filter_key
-        st.session_state["current_idx"] = 0
-        st.session_state["current_page"] = 0
+if st.button("🔀 Acak Urutan Soal", use_container_width=True):
+    st.session_state["shuffle_key"] += 1
+    st.session_state["current_idx"] = 0
+    st.session_state["current_page"] = 0
+    st.rerun()
+    
+soal_ditampilkan = soal_terfilter.copy()
 
-        temp_list = filtered_soal.copy()
-        if is_random:
-            random.shuffle(temp_list)
-        st.session_state["shuffled_soal"] = temp_list
-
-    active_soal_list = st.session_state["shuffled_soal"]
-    total_tersedia = len(active_soal_list)
+rng = random.Random(st.session_state["shuffle_key"])
+rng.shuffle(soal_ditampilkan)    
 
     # Inisialisasi State Jawaban & Percobaan Pertama
     if "user_answers" not in st.session_state:
