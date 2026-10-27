@@ -1,139 +1,70 @@
 import streamlit as st
-import pypdf
 import json
 import os
-from google import genai
-from google.genai import types
 
 # Setup Halaman Streamlit
 st.set_page_config(
-    page_title="AI Generator Soal Studi Kasus - UKOM JF PKN",
-    page_icon="⚡",
+    page_title="Bank Soal UKOM JF PKN 2026",
+    page_icon="📚",
     layout="wide"
 )
 
-st.title("⚡ Dynamic Case-Based Quiz Generator")
-st.subheader("Generate Soal Studi Kasus Mandiri & Interaktif dari PDF Materi")
+# -----------------------------------------------------------------------------
+# MEMBACA FILE SOAL JSON LOKAL
+# -----------------------------------------------------------------------------
+@st.cache_data
+def load_bank_soal():
+    json_path = os.path.join(os.path.dirname(__file__), "soal_500.json")
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    else:
+        # Fallback jika file belum ada
+        return []
+
+BANK_SOAL = load_bank_soal()
 
 # -----------------------------------------------------------------------------
-# INISIALISASI GEMINI CLIENT
+# APLIKASI STREAMLIT
 # -----------------------------------------------------------------------------
-# Mencek API Key dari st.secrets (Streamlit Cloud) atau os.environ (Lokal)
-api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
+st.title("📚 Simulasi Bank Soal UKOM JF PKN 2026")
+st.subheader("100% Offline, Tanpa API Key, Dilengkapi Pembahasan & Redaksi PDF")
 
-st.sidebar.header("⚙️ Pengaturan Generator")
+if not BANK_SOAL:
+    st.error("⚠️ File `soal_500.json` tidak ditemukan! Pastikan file JSON ditaruh di folder yang sama.")
+else:
+    # Sidebar Filters
+    st.sidebar.header("🎯 Filter & Navigasi Soal")
 
-# Jika API Key tidak ditemukan di Secrets/Env, baru tampilkan kolom input manual
-if not api_key:
-    api_key = st.sidebar.text_input("Masukkan Gemini API Key:", type="password")
+    modul_options = ["Semua Modul"] + sorted(list(set(s["modul"] for s in BANK_SOAL)))
+    selected_modul = st.sidebar.selectbox("Pilih Modul Materi:", modul_options)
 
-uploaded_file = st.sidebar.file_uploader("Upload File Materi (PDF)", type=["pdf"])
-halaman_pilihan = st.sidebar.text_input("Rentang Halaman (contoh: 1-5 atau 1,3,7):", "1-3")
-jumlah_soal = st.sidebar.number_input("Jumlah Soal Dihasilkan:", min_value=1, max_value=20, value=3)
+    tipe_options = ["Semua Tipe", "Hafalan", "Studi Kasus"]
+    selected_tipe = st.sidebar.selectbox("Pilih Tipe Soal:", tipe_options)
 
-# -----------------------------------------------------------------------------
-# FUNGSI MEMBACA PDF & GENERATE SOAL DENGAN GEMINI
-# -----------------------------------------------------------------------------
-def extract_pdf_pages(file_path, page_range_str):
-    reader = pypdf.PdfReader(file_path)
-    total_pages = len(reader.pages)
-    selected_pages = []
-    
-    # Parsing rentang halaman sederhan
-    try:
-        if "-" in page_range_str:
-            start, end = map(int, page_range_str.split("-"))
-            selected_pages = list(range(max(1, start), min(total_pages, end) + 1))
-        else:
-            selected_pages = [int(p.strip()) for p in page_range_str.split(",") if p.strip().isdigit()]
-    except:
-        selected_pages = [1]
+    # Filtering Logic
+    filtered_soal = BANK_SOAL
+    if selected_modul != "Semua Modul":
+        filtered_soal = [s for s in filtered_soal if s["modul"] == selected_modul]
+    if selected_tipe != "Semua Tipe":
+        filtered_soal = [s for s in filtered_soal if s["tipe"] == selected_tipe]
 
-    extracted_text = ""
-    for p in selected_pages:
-        if 1 <= p <= total_pages:
-            text = reader.pages[p-1].extract_text()
-            if text:
-                extracted_text += f"\n--- HALAMAN {p} ---\n" + text
-                
-    return extracted_text
+    st.sidebar.markdown("---")
+    st.sidebar.write(f"📊 **Total Soal Tampil:** {len(filtered_soal)} dari {len(BANK_SOAL)} Soal")
 
-def generate_quiz_with_ai(materi_text, num_questions, key):
-    client = genai.Client(api_key=key)
-    
-    prompt = f"""
-    Kamu adalah pembuat soal Uji Kompetensi Jabatan Fungsional Pemeriksa Keuangan Negara / Pemeriksa Pajak yang berpengalaman.
-    Berdasarkan teks materi berikut, buatkan {num_questions} soal latihan berupa **STUDI KASUS MANDIRI**.
+    # Session State Jawaban
+    if "user_answers" not in st.session_state:
+        st.session_state["user_answers"] = {}
 
-    Kriteria Soal:
-    1. Soal HARUS berupa narasi studi kasus yang lengkap (gunakan nama Wajib Pajak/PT/pemeriksa, kronologi tanggal, angka/perhitungan jika ada, atau dilema aturan).
-    2. Soal HARUS bisa dijawab secara mandiri TANPA pengguna harus melihat atau membaca ulang teks materi.
-    3. Pilihan jawaban terdiri dari A, B, C, D.
-    4. Pembahasan HARUS mencantumkan penjelasan hukum/prosedur yang mendalam dan menyebutkan **Redaksi Materi & Nomor Halaman PDF** tempat aturan tersebut berada.
-
-    Teks Materi:
-    {materi_text}
-
-    Kembalikan output DALAM FORMAT JSON RIGID berupa list of objects seperti berikut:
-    [
-        {{
-            "id": 1,
-            "soal": "Narasi studi kasus lengkap di sini...",
-            "opsi": ["A. pilihan A", "B. pilihan B", "C. pilihan C", "D. pilihan D"],
-            "kunci": "A",
-            "pembahasan": "Penjelasan rinci mengapa A benar...",
-            "halaman_ref": "Halaman X (Judul Aturan/Bab)"
-        }}
-    ]
-    JANGAN berikan teks pendahuluan atau markdown di luar JSON.
-    """
-    
-    response = client.models.generate_content(
-        model='gemini-3.8-flash', # <-- Ganti ke 2.0-flash agar lebih cepat & bebas antrean 503
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json"
-        )
-    )
-    
-    return json.loads(response.text)
-
-# -----------------------------------------------------------------------------
-# TOMBOL GENERATE
-# -----------------------------------------------------------------------------
-if uploaded_file is not None:
-    if st.sidebar.button("🚀 Buat Soal Studi Kasus"):
-        if not api_key:
-            st.error("Masukkan Gemini API Key terlebih dahulu!")
-        else:
-            with st.spinner("Menganalisis materi PDF & menyusun studi kasus realistis..."):
-                try:
-                    raw_text = extract_pdf_pages(uploaded_file, halaman_pilihan)
-                    quiz_data = generate_quiz_with_ai(raw_text, jumlah_soal, api_key)
-                    
-                    st.session_state["generated_quiz"] = quiz_data
-                    st.session_state["jawaban_user"] = {}
-                    st.success(f"Berhasil membuat {len(quiz_data)} soal studi kasus!")
-                except Exception as e:
-                    st.error(f"Gagal generate soal: {e}")
-
-# -----------------------------------------------------------------------------
-# TAMPILAN INTERAKTIF SOAL
-# -----------------------------------------------------------------------------
-if "generated_quiz" in st.session_state and len(st.session_state["generated_quiz"]) > 0:
-    quiz_list = st.session_state["generated_quiz"]
-    
-    st.markdown("---")
-    st.markdown(f"### 📝 Latihan Soal Studi Kasus ({len(quiz_list)} Soal)")
-    
     skor_benar = 0
-    
-    for idx, item in enumerate(quiz_list):
-        st.markdown(f"#### Soal No. {idx+1}")
-        # Tampilkan narasi studi kasus mandiri
+
+    # Render Soal
+    for idx, item in enumerate(filtered_soal):
+        st.markdown(f"### Soal No. {idx + 1}")
+        st.caption(f"📌 **Modul:** {item['modul']} | 🧩 **Tipe:** {item['tipe']}")
         st.write(item["soal"])
 
-        pilihan_key = f"quiz_ai_{item.get('id', idx)}"
+        pilihan_key = f"local_json_{item['id']}"
         pilihan = st.radio(
             "Pilih Jawaban Anda:",
             item["opsi"],
@@ -143,7 +74,7 @@ if "generated_quiz" in st.session_state and len(st.session_state["generated_quiz
 
         if pilihan:
             jawaban_huruf = pilihan.split(".")[0].strip()
-            st.session_state["jawaban_user"][idx] = jawaban_huruf
+            st.session_state["user_answers"][item["id"]] = jawaban_huruf
 
             if jawaban_huruf == item["kunci"]:
                 st.success("✅ **Jawaban Anda Benar!**")
@@ -151,19 +82,19 @@ if "generated_quiz" in st.session_state and len(st.session_state["generated_quiz
             else:
                 st.error(f"❌ **Jawaban Anda Salah!** (Jawaban Benar: **{item['kunci']}**)")
 
-            # Redaksi materi dan rujukan halaman baru tampil di sini
-            with st.expander("📖 Lihat Pembahasan & Redaksi Materi PDF"):
+            # Redaksi & Penjelasan Halaman PDF
+            with st.expander("📖 Lihat Penjelasan & Redaksi Halaman PDF"):
                 st.write(f"**Pembahasan:**\n{item['pembahasan']}")
                 st.info(f"📚 **Rujukan PDF:** {item['halaman_ref']}")
 
         st.markdown("---")
 
-    # Score Panel
-    if len(st.session_state["jawaban_user"]) > 0:
+    # Rekap Nilai Akhir
+    if len(st.session_state["user_answers"]) > 0:
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### 📊 Nilai Hasil Evaluasi")
-        dijawab = len(st.session_state["jawaban_user"])
-        st.sidebar.metric("Soal Dijawab", f"{dijawab} / {len(quiz_list)}")
+        st.sidebar.markdown("### 📈 Rekap Perolehan Nilai")
+        total_dijawab = len(st.session_state["user_answers"])
+        st.sidebar.metric("Soal Dijawab", f"{total_dijawab} / {len(filtered_soal)}")
         st.sidebar.metric("Jawaban Benar", f"{skor_benar}")
-        nilai = (skor_benar / len(quiz_list)) * 100
-        st.sidebar.metric("Nilai Akhir", f"{nilai:.1f} / 100")
+        nilai_akhir = (skor_benar / len(filtered_soal)) * 100
+        st.sidebar.metric("Nilai Akhir", f"{nilai_akhir:.1f} / 100")
