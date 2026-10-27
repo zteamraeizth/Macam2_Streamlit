@@ -1,50 +1,5 @@
 [
   {
-    "id": 1,
-    "modul": "Pokok Pengumuman Ukom JF PKN 2026",
-    "tipe": "Studi Kasus",
-    "soal": "Bambang adalah seorang pelaksana di KPP Pratama Jakarta Duren Sawit berpendidikan S1 Sistem Informasi. Ia telah menjadi PNS selama 3 tahun dengan nilai kinerja 'Sangat Baik' dalam 2 tahun terakhir dan tidak sedang dijatuhi sanksi disiplin. Per 1 Januari 2027 usianya 52 tahun. Pangkat Bambang adalah III/a dengan Grade 10. Apakah Bambang memenuhi syarat mengikuti Ukom JF PKN jenjang Ahli Pertama?",
-    "opsi": [
-      "A. Tidak memenuhi syarat, karena usia melebihi batas maksimal 50 tahun.",
-      "B. Memenuhi syarat, karena jenjang Ahli Pertama mensyaratkan Pangkat III/a s.d. IV/a, S1/D-IV, Grade min 10, dan usia di bawah 54 tahun per 1 Januari 2027.",
-      "C. Tidak memenuhi syarat, karena masa kerja minimal PNS adalah 5 tahun.",
-      "D. Memenuhi syarat, namun wajib menduduki jabatan AR terlebih dahulu."
-    ],
-    "kunci": "B",
-    "pembahasan": "Berdasarkan Pengumuman PENG-653/P3/PJ.01/2026, persyaratan peserta untuk jenjang Ahli Pertama meliputi: Pangkat III/a s.d. IV/a, Pendidikan S1/D-IV, Grade minimal 10, masa kerja PNS minimal 2 tahun, nilai kinerja minimal baik dalam 2 tahun terakhir, serta usia di bawah 54 tahun per 1 Januari 2027.",
-    "halaman_ref": "Halaman 1 (Pengumuman PENG-653/P3/PJ.01/2026 - Persyaratan Peserta)"
-  },
-  {
-    "id": 2,
-    "modul": "Pokok Pengumuman Ukom JF PKN 2026",
-    "tipe": "Hafalan",
-    "soal": "Berdasarkan Pengumuman PENG-653/P3/PJ.01/2026, berapakah batas usia maksimal per 1 Januari 2027 bagi peserta yang mendaftar Uji Kompetensi JF PKN jenjang Ahli Muda?",
-    "opsi": [
-      "A. Kurang dari 52 tahun",
-      "B. Kurang dari 54 tahun",
-      "C. Kurang dari 56 tahun",
-      "D. Kurang dari 58 tahun"
-    ],
-    "kunci": "C",
-    "pembahasan": "Sesuai Pengumuman PENG-653/P3/PJ.01/2026, batas usia maksimal per 1 Januari 2027 untuk jenjang Ahli Pertama dan Mahir adalah < 54 tahun, sedangkan untuk jenjang Ahli Muda dan Penyelia adalah < 56 tahun.",
-    "halaman_ref": "Halaman 1 (Pengumuman PENG-653/P3/PJ.01/2026 - Tabel Persyaratan Usia)"
-  },
-  {
-    "id": 3,
-    "modul": "Pokok Pengumuman Ukom JF PKN 2026",
-    "tipe": "Studi Kasus",
-    "soal": "Siti pernah mengikuti dan dinyatakan lulus UKOM Manajerial dan Sosial Kultural (Mansoskul) pada Ukom Gelombang II. Pada Gelombang IV Tahun 2026 ini, Siti mendaftar kembali untuk jenjang Mahir. Bagaimana skema pelaksanaan ujian bagi Siti?",
-    "opsi": [
-      "A. Siti wajib mengulangi seluruh rangkaian ujian (Teknis dan Mansoskul).",
-      "B. Siti dikecualikan dari UKOM Mansoskul dan hanya wajib mengikuti UKOM Teknis metode Pilihan Ganda.",
-      "C. Siti hanya perlu mengikuti ujian Mansoskul ulang dengan metode SJT.",
-      "D. Siti gugur secara otomatis karena peserta gelombang sebelumnya tidak boleh mendaftar."
-    ],
-    "kunci": "B",
-    "pembahasan": "Pengumuman menegaskan bahwa peserta yang sudah memiliki nilai UKOM Mansoskul dikecualikan dari pelaksanaan UKOM Mansoskul dan hanya perlu mengikuti UKOM Teknis metode Pilihan Ganda.",
-    "halaman_ref": "Halaman 1 (Pengumuman PENG-653/P3/PJ.01/2026 - Uji Kompetensi & Ketentuan Lain)"
-  },
-  {
     "id": 4,
     "modul": "Konsep Dasar & Standar Pemeriksaan Pajak",
     "tipe": "Hafalan",
