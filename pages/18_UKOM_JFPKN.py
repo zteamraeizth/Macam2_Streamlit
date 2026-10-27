@@ -74,26 +74,33 @@ else:
     # Pilihan Mode Tampilan
     mode_tampilan = st.sidebar.radio(
         "Pilih Mode Tampilan Soal:",
-        ["Mode Per-Soal (Satu per Halaman)", "Mode Daftar (Semua Soal)"]
+        [
+            "Mode Per-Soal (Satu per Halaman)",
+            "Mode Per 10 Soal (Pagination)",
+            "Mode Daftar (Semua Soal)"
+        ]
     )
 
     # Acak Soal Option
     is_random = st.sidebar.checkbox("🔀 Acak Urutan Soal", value=False)
     
-    filter_key = f"{selected_modul}_{selected_tipe}_{is_random}"
+    filter_key = f"{selected_modul}_{selected_tipe}_{is_random}_{mode_tampilan}"
     if "last_filter" not in st.session_state or st.session_state["last_filter"] != filter_key:
         st.session_state["last_filter"] = filter_key
-        st.session_state["current_idx"] = 0  # Reset indeks ke 0 saat filter berubah
+        st.session_state["current_idx"] = 0  # Reset indeks per-soal
+        st.session_state["current_page"] = 0  # Reset halaman per 10 soal
         if is_random:
             random.shuffle(filtered_soal)
     
     total_tersedia = len(filtered_soal)
 
-    # Inisialisasi State Jawaban & Indeks Navigasi
+    # Inisialisasi State Jawaban & Navigasi
     if "user_answers" not in st.session_state:
         st.session_state["user_answers"] = {}
     if "current_idx" not in st.session_state:
         st.session_state["current_idx"] = 0
+    if "current_page" not in st.session_state:
+        st.session_state["current_page"] = 0
 
     # Tombol Reset Jawaban
     if st.sidebar.button("🔄 Reset Jawaban"):
@@ -102,10 +109,13 @@ else:
                 del st.session_state[key]
         st.session_state["user_answers"] = {}
         st.session_state["current_idx"] = 0
+        st.session_state["current_page"] = 0
         st.rerun()
 
+    soal_ditampilkan = []
+
     # -----------------------------------------------------------------------------
-    # RENDERING: MODE PER-SOAL (DENGAN TOMBOL SELANJUTNYA)
+    # 1. MODE PER-SOAL (SATU PER HALAMAN)
     # -----------------------------------------------------------------------------
     if mode_tampilan == "Mode Per-Soal (Satu per Halaman)":
         max_soal_tampil = st.sidebar.slider(
@@ -119,9 +129,9 @@ else:
         total_soal = len(soal_ditampilkan)
 
         if total_soal > 0:
-            # Validasi batas indeks
             if st.session_state["current_idx"] >= total_soal:
                 st.session_state["current_idx"] = total_soal - 1
+            
             curr_idx = st.session_state["current_idx"]
             item = soal_ditampilkan[curr_idx]
             soal_id = item.get("id", curr_idx)
@@ -129,7 +139,6 @@ else:
             st.sidebar.markdown("---")
             st.sidebar.write(f"📊 **Posisi:** Soal {curr_idx + 1} dari {total_soal}")
 
-            # Tampilan Soal
             st.markdown(f"### Soal No. {curr_idx + 1} dari {total_soal}")
             st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')}")
             st.write(item.get("soal", ""))
@@ -157,7 +166,6 @@ else:
 
             st.markdown("---")
 
-            # Navigasi Tombol Sebelum & Selanjutnya
             col1, col2, col3 = st.columns([1, 2, 1])
             with col1:
                 if st.button("⬅️ Soal Sebelumnya", disabled=(curr_idx == 0), use_container_width=True):
@@ -170,7 +178,72 @@ else:
                     st.rerun()
 
     # -----------------------------------------------------------------------------
-    # RENDERING: MODE DAFTAR (SEMUA SOAL)
+    # 2. MODE PER 10 SOAL (PAGINATION)
+    # -----------------------------------------------------------------------------
+    elif mode_tampilan == "Mode Per 10 Soal (Pagination)":
+        soal_per_halaman = 10
+        total_halaman = (total_tersedia + soal_per_halaman - 1) // soal_per_halaman if total_tersedia > 0 else 1
+
+        if st.session_state["current_page"] >= total_halaman:
+            st.session_state["current_page"] = total_halaman - 1
+
+        page_curr = st.session_state["current_page"]
+        start_idx = page_curr * soal_per_halaman
+        end_idx = min(start_idx + soal_per_halaman, total_tersedia)
+        
+        soal_ditampilkan = filtered_soal[start_idx:end_idx]
+
+        st.sidebar.markdown("---")
+        st.sidebar.write(f"📊 **Halaman:** {page_curr + 1} dari {total_halaman}")
+        st.sidebar.write(f"🔢 **Soal Ditampilkan:** {start_idx + 1} - {end_idx} dari {total_tersedia}")
+
+        st.markdown(f"## 📄 Halaman {page_curr + 1} (Soal {start_idx + 1} – {end_idx})")
+        st.markdown("---")
+
+        for relative_idx, item in enumerate(soal_ditampilkan):
+            absolute_idx = start_idx + relative_idx
+            soal_id = item.get("id", absolute_idx)
+
+            st.markdown(f"### Soal No. {absolute_idx + 1}")
+            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')}")
+            st.write(item.get("soal", ""))
+
+            pilihan_key = f"local_json_{soal_id}"
+            pilihan = st.radio(
+                "Pilih Jawaban Anda:",
+                item.get("opsi", []),
+                key=pilihan_key,
+                index=None
+            )
+
+            if pilihan:
+                jawaban_huruf = pilihan.split(".")[0].strip()
+                st.session_state["user_answers"][soal_id] = jawaban_huruf
+
+                if jawaban_huruf == item.get("kunci"):
+                    st.success("✅ **Jawaban Anda Benar!**")
+                else:
+                    st.error(f"❌ **Jawaban Anda Salah!** (Jawaban Benar: **{item.get('kunci')}**)")
+
+                with st.expander("📖 Lihat Penjelasan & Redaksi Halaman PDF"):
+                    st.write(f"**Pembahasan:**\n{item.get('pembahasan', '-')}")
+                    st.info(f"📚 **Rujukan PDF:** {item.get('halaman_ref', '-')}")
+
+            st.markdown("---")
+
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col1:
+            if st.button("⬅️ Halaman Sebelumnya", disabled=(page_curr == 0), use_container_width=True):
+                st.session_state["current_page"] -= 1
+                st.rerun()
+
+        with col3:
+            if st.button("Halaman Selanjutnya ➡️", disabled=(page_curr >= total_halaman - 1), use_container_width=True):
+                st.session_state["current_page"] += 1
+                st.rerun()
+
+    # -----------------------------------------------------------------------------
+    # 3. MODE DAFTAR (SEMUA SOAL)
     # -----------------------------------------------------------------------------
     else:
         max_soal_tampil = st.sidebar.slider(
@@ -223,16 +296,18 @@ else:
         
         skor_benar_tampil = 0
         dijawab_tampil = 0
-        for s in soal_ditampilkan:
+        target_soal = soal_ditampilkan if soal_ditampilkan else filtered_soal
+
+        for s in target_soal:
             sid = s.get("id", None)
             if sid in st.session_state["user_answers"]:
                 dijawab_tampil += 1
                 if st.session_state["user_answers"][sid] == s.get("kunci"):
                     skor_benar_tampil += 1
 
-        st.sidebar.metric("Soal Dijawab", f"{dijawab_tampil} / {len(soal_ditampilkan)}")
+        st.sidebar.metric("Soal Dijawab", f"{dijawab_tampil} / {len(target_soal)}")
         st.sidebar.metric("Jawaban Benar", f"{skor_benar_tampil}")
         
-        if len(soal_ditampilkan) > 0:
-            nilai_akhir = (skor_benar_tampil / len(soal_ditampilkan)) * 100
+        if len(target_soal) > 0:
+            nilai_akhir = (skor_benar_tampil / len(target_soal)) * 100
             st.sidebar.metric("Nilai Akhir", f"{nilai_akhir:.1f} / 100")
