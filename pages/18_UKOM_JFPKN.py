@@ -34,8 +34,8 @@ BANK_SOAL = load_bank_soal()
 # -----------------------------------------------------------------------------
 # APLIKASI UTAMA STREAMLIT
 # -----------------------------------------------------------------------------
-st.title("📚 Simulasi Bank Soal UKOM JF PKN 2026")
-st.subheader("Modul Latihan 500 Soal — Sistem Penilaian Percobaan Pertama (First Attempt)")
+st.title("📚 Simulasi Bank Soal Materi UKOM JF PKN 2026")
+st.subheader("Modul Latihan")
 
 if not BANK_SOAL:
     st.warning(
