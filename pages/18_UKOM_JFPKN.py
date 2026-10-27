@@ -18,10 +18,12 @@ st.subheader("Generate Soal Studi Kasus Mandiri & Interaktif dari PDF Materi")
 # -----------------------------------------------------------------------------
 # INISIALISASI GEMINI CLIENT
 # -----------------------------------------------------------------------------
-# Masukkan API Key kamu via Environment Variable atau Input Sidebar
-api_key = os.environ.get("GEMINI_API_KEY")
+# Mencek API Key dari st.secrets (Streamlit Cloud) atau os.environ (Lokal)
+api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
 
-st.sidebar.header("⚙️ Pengaturan & API Key")
+st.sidebar.header("⚙️ Pengaturan Generator")
+
+# Jika API Key tidak ditemukan di Secrets/Env, baru tampilkan kolom input manual
 if not api_key:
     api_key = st.sidebar.text_input("Masukkan Gemini API Key:", type="password")
 
