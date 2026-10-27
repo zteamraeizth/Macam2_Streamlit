@@ -15,31 +15,21 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 @st.cache_data(ttl=2)
 def load_bank_soal():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    path_script = os.path.join(base_dir, "soal_500.json")
-    path_parent = os.path.join(base_dir, "..", "soal_500.json")
-    path_cwd = os.path.join(os.getcwd(), "soal_500.json")
-
-    json_path = None
-    if os.path.exists(path_script):
-        json_path = path_script
-    elif os.path.exists(path_parent):
-        json_path = path_parent
-    elif os.path.exists(path_cwd):
-        json_path = path_cwd
-
-    if json_path:
+    json_path = os.path.join(os.path.dirname(__file__), "soal_500.json")
+    if os.path.exists(json_path):
         try:
             with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if isinstance(data, list) and len(data) > 0:
-                    return data
+                # Otomatis reset nomor ID agar 100% unik (1 s.d. selesai)
+                for index, item in enumerate(data, start=1):
+                    item["id"] = index
+                return data
         except Exception as e:
             st.error(f"Gagal membaca file JSON: {e}")
             return []
     return []
 
-BANK_SOAL = load_bank_soal()
+  BANK_SOAL = load_bank_soal()
 
 # -----------------------------------------------------------------------------
 # APLIKASI UTAMA STREAMLIT
