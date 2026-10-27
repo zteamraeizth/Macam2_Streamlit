@@ -62,7 +62,7 @@ else:
     selected_tipe = st.sidebar.selectbox("Pilih Tipe Soal:", tipe_options)
 
     # Filtering Logic
-    filtered_soal = BANK_SOAL
+    filtered_soal = BANK_SOAL.copy()
     if selected_modul != "Semua Modul":
         filtered_soal = [s for s in filtered_soal if s.get("modul") == selected_modul]
     if selected_tipe != "Semua Tipe":
@@ -77,6 +77,7 @@ else:
         [
             "Mode Per-Soal (Satu per Halaman)",
             "Mode Per 10 Soal (Pagination)",
+            "Mode Per 20 Soal (Pagination)",
             "Mode Daftar (Semua Soal)"
         ]
     )
@@ -84,15 +85,21 @@ else:
     # Acak Soal Option
     is_random = st.sidebar.checkbox("🔀 Acak Urutan Soal", value=False)
     
+    # Kelola Seed & Urutan Acak di Session State
     filter_key = f"{selected_modul}_{selected_tipe}_{is_random}_{mode_tampilan}"
-    if "last_filter" not in st.session_state or st.session_state["last_filter"] != filter_key:
-        st.session_state["last_filter"] = filter_key
-        st.session_state["current_idx"] = 0  # Reset indeks per-soal
-        st.session_state["current_page"] = 0  # Reset halaman per 10 soal
-        if is_random:
-            random.shuffle(filtered_soal)
     
-    total_tersedia = len(filtered_soal)
+    if "shuffled_soal" not in st.session_state or st.session_state.get("last_filter_key") != filter_key:
+        st.session_state["last_filter_key"] = filter_key
+        st.session_state["current_idx"] = 0
+        st.session_state["current_page"] = 0
+        
+        temp_list = filtered_soal.copy()
+        if is_random:
+            random.shuffle(temp_list)
+        st.session_state["shuffled_soal"] = temp_list
+
+    active_soal_list = st.session_state["shuffled_soal"]
+    total_tersedia = len(active_soal_list)
 
     # Inisialisasi State Jawaban & Navigasi
     if "user_answers" not in st.session_state:
@@ -101,6 +108,16 @@ else:
         st.session_state["current_idx"] = 0
     if "current_page" not in st.session_state:
         st.session_state["current_page"] = 0
+
+    # Tombol Kuis Ulang / Re-shuffle Manual
+    if is_random:
+        if st.sidebar.button("🔀 Acak Ulang Soal Sekarang"):
+            temp_list = filtered_soal.copy()
+            random.shuffle(temp_list)
+            st.session_state["shuffled_soal"] = temp_list
+            st.session_state["current_idx"] = 0
+            st.session_state["current_page"] = 0
+            st.rerun()
 
     # Tombol Reset Jawaban
     if st.sidebar.button("🔄 Reset Jawaban"):
@@ -125,7 +142,7 @@ else:
             value=min(50, total_tersedia) if total_tersedia > 0 else 0,
             step=1
         )
-        soal_ditampilkan = filtered_soal[:max_soal_tampil]
+        soal_ditampilkan = active_soal_list[:max_soal_tampil]
         total_soal = len(soal_ditampilkan)
 
         if total_soal > 0:
@@ -140,7 +157,7 @@ else:
             st.sidebar.write(f"📊 **Posisi:** Soal {curr_idx + 1} dari {total_soal}")
 
             st.markdown(f"### Soal No. {curr_idx + 1} dari {total_soal}")
-            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')}")
+            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')} | 🆔 **ID Soal:** {item.get('id', '-')}")
             st.write(item.get("soal", ""))
 
             pilihan_key = f"local_json_{soal_id}"
@@ -178,10 +195,10 @@ else:
                     st.rerun()
 
     # -----------------------------------------------------------------------------
-    # 2. MODE PER 10 SOAL (PAGINATION)
+    # 2. MODE PER 10 / PER 20 SOAL (PAGINATION)
     # -----------------------------------------------------------------------------
-    elif mode_tampilan == "Mode Per 10 Soal (Pagination)":
-        soal_per_halaman = 10
+    elif mode_tampilan in ["Mode Per 10 Soal (Pagination)", "Mode Per 20 Soal (Pagination)"]:
+        soal_per_halaman = 10 if mode_tampilan == "Mode Per 10 Soal (Pagination)" else 20
         total_halaman = (total_tersedia + soal_per_halaman - 1) // soal_per_halaman if total_tersedia > 0 else 1
 
         if st.session_state["current_page"] >= total_halaman:
@@ -191,7 +208,7 @@ else:
         start_idx = page_curr * soal_per_halaman
         end_idx = min(start_idx + soal_per_halaman, total_tersedia)
         
-        soal_ditampilkan = filtered_soal[start_idx:end_idx]
+        soal_ditampilkan = active_soal_list[start_idx:end_idx]
 
         st.sidebar.markdown("---")
         st.sidebar.write(f"📊 **Halaman:** {page_curr + 1} dari {total_halaman}")
@@ -205,7 +222,7 @@ else:
             soal_id = item.get("id", absolute_idx)
 
             st.markdown(f"### Soal No. {absolute_idx + 1}")
-            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')}")
+            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')} | 🆔 **ID Soal:** {item.get('id', '-')}")
             st.write(item.get("soal", ""))
 
             pilihan_key = f"local_json_{soal_id}"
@@ -253,7 +270,7 @@ else:
             value=min(20, total_tersedia) if total_tersedia > 0 else 0,
             step=1
         )
-        soal_ditampilkan = filtered_soal[:max_soal_tampil]
+        soal_ditampilkan = active_soal_list[:max_soal_tampil]
 
         st.sidebar.markdown("---")
         st.sidebar.write(f"📊 **Total Soal Tampil:** {len(soal_ditampilkan)} dari {len(BANK_SOAL)} Soal")
@@ -261,7 +278,7 @@ else:
         for idx, item in enumerate(soal_ditampilkan):
             soal_id = item.get("id", idx)
             st.markdown(f"### Soal No. {idx + 1}")
-            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')}")
+            st.caption(f"📌 **Modul:** {item.get('modul', '-')} | 🧩 **Tipe:** {item.get('tipe', '-')} | 🆔 **ID Soal:** {item.get('id', '-')}")
             st.write(item.get("soal", ""))
 
             pilihan_key = f"local_json_{soal_id}"
@@ -296,7 +313,7 @@ else:
         
         skor_benar_tampil = 0
         dijawab_tampil = 0
-        target_soal = soal_ditampilkan if soal_ditampilkan else filtered_soal
+        target_soal = soal_ditampilkan if soal_ditampilkan else active_soal_list
 
         for s in target_soal:
             sid = s.get("id", None)
@@ -305,9 +322,10 @@ else:
                 if st.session_state["user_answers"][sid] == s.get("kunci"):
                     skor_benar_tampil += 1
 
-        st.sidebar.metric("Soal Dijawab", f"{dijawab_tampil} / {len(target_soal)}")
+        total_target = len(target_soal)
+        st.sidebar.metric("Soal Dijawab", f"{dijawab_tampil} / {total_target}")
         st.sidebar.metric("Jawaban Benar", f"{skor_benar_tampil}")
         
-        if len(target_soal) > 0:
-            nilai_akhir = (skor_benar_tampil / len(target_soal)) * 100
+        if total_target > 0:
+            nilai_akhir = (skor_benar_tampil / total_target) * 100
             st.sidebar.metric("Nilai Akhir", f"{nilai_akhir:.1f} / 100")
