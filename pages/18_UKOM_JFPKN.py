@@ -2,6 +2,45 @@ import json
 import os
 import random
 import streamlit as st
+import re
+
+
+def normalize_answer(value):
+    """Ubah kunci/pilihan menjadi huruf jawaban (A, B, C, D, dst.)."""
+    if value is None:
+        return ""
+
+    # Jika data kunci berupa angka, biarkan sebagai teks untuk penanganan di bawah.
+    text = str(value).strip().upper()
+    if not text:
+        return ""
+
+    # Mendukung format: C, C., C), (C), C. teks jawaban, atau teks opsi lengkap.
+    match = re.match(r"^\s*\(?\s*([A-Z])\s*(?:[.)：:]|[-])?\s*(?:$|\s)", text)
+    if match:
+        return match.group(1)
+
+    # Mendukung kunci yang disimpan sebagai huruf saja tanpa pemisah.
+    if len(text) == 1 and text.isalpha():
+        return text
+
+    # Jika kunci berupa teks jawaban lengkap, bandingkan teksnya secara normal.
+    return re.sub(r"\s+", " ", text).strip(" .):(").upper()
+
+
+def answers_match(selected_option, answer_key):
+    """Bandingkan pilihan dan kunci, baik berbentuk huruf maupun teks lengkap."""
+    selected = normalize_answer(selected_option)
+    key = normalize_answer(answer_key)
+    if not selected or not key:
+        return False
+    if selected == key:
+        return True
+
+    # Jika salah satu nilai merupakan teks opsi lengkap, cocokkan prefiks hurufnya.
+    selected_letter = re.match(r"^([A-Z])(?:[.)：:]|\s|$)", str(selected_option or "").strip().upper())
+    key_letter = re.match(r"^([A-Z])(?:[.)：:]|\s|$)", str(answer_key or "").strip().upper())
+    return bool(selected_letter and key_letter and selected_letter.group(1) == key_letter.group(1))
 
 # Setup Halaman Streamlit
 st.set_page_config(
@@ -172,35 +211,48 @@ else:
         st.write(item.get("soal", ""))
 
         pilihan_key = f"local_json_{soal_id}"
+        daftar_opsi = item.get("opsi", [])
         pilihan = st.radio(
             "Pilih Jawaban Anda:",
-            item.get("opsi", []),
+            daftar_opsi,
             key=pilihan_key,
             index=None,
         )
 
-        if pilihan:
-            jawaban_huruf = pilihan.split(".")[0].strip()
-            
+        if pilihan is not None:
+            # PENTING: JSON Anda menyimpan opsi sebagai teks tanpa label A/B/C/D.
+            # Karena itu huruf jawaban ditentukan dari posisi opsi, bukan huruf
+            # pertama teks (misalnya "Edukasi..." tidak berarti jawaban E).
+            indeks_pilihan = daftar_opsi.index(pilihan)
+            jawaban_huruf = chr(ord("A") + indeks_pilihan)
+            kunci_benar = normalize_answer(item.get("kunci", ""))
+
             # 1. Simpan jawaban aktif saat ini
             st.session_state["user_answers"][soal_id] = jawaban_huruf
-            
-            # 2. HANYA CATAT PILIHAN PERTAMA KALI (Kunci Penilaian)
+
+            # 2. Catat pilihan pertama hanya sekali untuk penilaian akhir
             if soal_id not in st.session_state["first_answers"]:
                 st.session_state["first_answers"][soal_id] = jawaban_huruf
 
             jawaban_pertama = st.session_state["first_answers"][soal_id]
-            kunci_benar = item.get("kunci")
+            pilihan_saat_ini_benar = answers_match(jawaban_huruf, kunci_benar)
+            jawaban_pertama_benar = answers_match(jawaban_pertama, kunci_benar)
 
-            # 3. Tampilkan Feedback Real-Time
-            if jawaban_huruf == kunci_benar:
+            # 3. Tampilkan feedback berdasarkan jawaban yang sedang dipilih
+            if pilihan_saat_ini_benar:
                 st.success("✅ **Jawaban Pilihan Anda Saat Ini Benar!**")
             else:
-                st.error(f"❌ **Jawaban Pilihan Anda Saat Ini Salah!** (Jawaban Kunci: **{kunci_benar}**)")
+                st.error(
+                    f"❌ **Jawaban Pilihan Anda Saat Ini Salah!** "
+                    f"(Jawaban Kunci: **{kunci_benar}**)"
+                )
 
-            # Peringatan jika pengguna mengubah jawaban dari salah ke benar
-            if jawaban_pertama != kunci_benar:
-                st.warning("⚠️ **Catatan Penilaian:** Jawaban pertama Anda pada soal ini adalah SALAH. Perubahan jawaban tidak menambah poin nilai akhir.")
+            # Peringatan hanya jika pilihan pertama memang salah
+            if not jawaban_pertama_benar:
+                st.warning(
+                    "⚠️ **Catatan Penilaian:** Jawaban pertama Anda pada soal ini "
+                    "adalah SALAH. Perubahan jawaban tidak menambah poin nilai akhir."
+                )
 
             with st.expander("📖 Lihat Penjelasan & Redaksi Halaman PDF"):
                 st.write(f"**Pembahasan:**\n{item.get('pembahasan', '-')}")
@@ -314,9 +366,9 @@ else:
         skor_benar_pertama = 0
         dijawab_tampil = 0
         
-        # Perbaikan target soal rekap agar akurat sesuai mode tampilan
-        if mode_tampilan == "Mode Per-Soal (Satu per Halaman)":
-            target_soal = active_soal_list[:max_soal_tampil]
+        # Target rekap mengikuti cakupan soal pada mode tampilan.
+        if mode_tampilan in ["Mode Per 10 Soal (Pagination)", "Mode Per 20 Soal (Pagination)"]:
+            target_soal = active_soal_list
         else:
             target_soal = active_soal_list[:max_soal_tampil]
 
@@ -324,7 +376,7 @@ else:
             sid = s.get("id", None)
             if sid in st.session_state["first_answers"]:
                 dijawab_tampil += 1
-                if st.session_state["first_answers"][sid] == s.get("kunci"):
+                if answers_match(st.session_state["first_answers"][sid], s.get("kunci", "")):
                     skor_benar_pertama += 1
 
         total_target = len(target_soal)
