@@ -115,6 +115,7 @@ else:
 
     # Tentukan List Soal Ditampilkan Berdasarkan Mode
     soal_ditampilkan = []
+    max_soal_tampil = total_tersedia
 
     if mode_tampilan == "Mode Per-Soal (Satu per Halaman)":
         max_soal_tampil = st.sidebar.slider(
@@ -124,15 +125,16 @@ else:
             value=min(50, total_tersedia) if total_tersedia > 0 else 0,
             step=1,
         )
-        soal_ditampilkan = active_soal_list[:max_soal_tampil]
-        total_soal = len(soal_ditampilkan)
+        soal_pembatas = active_soal_list[:max_soal_tampil]
+        total_soal = len(soal_pembatas)
 
         if total_soal > 0:
             if st.session_state["current_idx"] >= total_soal:
                 st.session_state["current_idx"] = total_soal - 1
             curr_idx = st.session_state["current_idx"]
-            item = soal_ditampilkan[curr_idx]
-            soal_ditampilkan = [item]
+            soal_ditampilkan = [soal_pembatas[curr_idx]]
+        else:
+            soal_ditampilkan = []
 
     elif mode_tampilan in ["Mode Per 10 Soal (Pagination)", "Mode Per 20 Soal (Pagination)"]:
         soal_per_halaman = 10 if mode_tampilan == "Mode Per 10 Soal (Pagination)" else 20
@@ -228,11 +230,11 @@ else:
                 st.rerun()
 
         with col_info:
-            if total_tersedia > 0:
+            if total_tersedia > 0 and max_soal_tampil > 0:
                 st.markdown(
                     f"<div style='text-align:center'>"
                     f"Soal {st.session_state['current_idx'] + 1} "
-                    f"dari {total_soal}</div>",
+                    f"dari {max_soal_tampil}</div>",
                     unsafe_allow_html=True,
                 )
             else:
@@ -243,7 +245,7 @@ else:
                 "Berikutnya ➡️",
                 disabled=(
                     total_tersedia == 0
-                    or st.session_state["current_idx"] >= total_soal - 1
+                    or st.session_state["current_idx"] >= max_soal_tampil - 1
                 ),
                 use_container_width=True,
                 key="next_single",
@@ -311,13 +313,17 @@ else:
 
         skor_benar_pertama = 0
         dijawab_tampil = 0
-        target_soal = soal_ditampilkan if mode_tampilan != "Mode Per-Soal (Satu per Halaman)" else active_soal_list
+        
+        # Perbaikan target soal rekap agar akurat sesuai mode tampilan
+        if mode_tampilan == "Mode Per-Soal (Satu per Halaman)":
+            target_soal = active_soal_list[:max_soal_tampil]
+        else:
+            target_soal = active_soal_list[:max_soal_tampil]
 
         for s in target_soal:
             sid = s.get("id", None)
             if sid in st.session_state["first_answers"]:
                 dijawab_tampil += 1
-                # Hitung poin HANYA JIKA jawaban pertama kali bernilai benar
                 if st.session_state["first_answers"][sid] == s.get("kunci"):
                     skor_benar_pertama += 1
 
