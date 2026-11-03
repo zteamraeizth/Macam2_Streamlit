@@ -44,15 +44,13 @@ def extract_surat_tugas_data(pdf_file):
             nomor_st = re.sub(r"\s+", "", fallback_match.group(1))
 
     # -------------------------------------------------------------
-    # 2. JUMLAH ORANG / PERSONEL (DITAMBAHKAN)
+    # 2. JUMLAH ORANG / PERSONEL
     # -------------------------------------------------------------
-    # Metode A: Hitung berdasarkan kemunculan 'nama/NIP' atau 'nama / NIP'
     nama_nip_matches = re.findall(
         r"nama\s*/\s*NIP", text_by_lines, re.IGNORECASE
     )
     jumlah_orang = len(nama_nip_matches)
 
-    # Metode B (Fallback): Jika tidak terdeteksi 'nama/NIP', hitung berdasarkan pola NIP (18 digit)
     if jumlah_orang == 0:
         nip_matches = re.findall(r"\b\d{8}\s?\d{6}\s?\d{1}\s?\d{3}\b", text_by_lines)
         jumlah_orang = len(nip_matches) if len(nip_matches) > 0 else "-"
@@ -129,6 +127,23 @@ def extract_surat_tugas_data(pdf_file):
         else (tgl_surat_match.group(1) if tgl_surat_match else "-")
     )
 
+    # -------------------------------------------------------------
+    # 8. VALIDASI PEMBEBANAN DIPA (KOLOM TERAKHIR)
+    # -------------------------------------------------------------
+    # Menggunakan regex untuk mendeteksi frasa kunci secara fleksibel terhadap spasi/baris baru
+    dipa_pattern = re.compile(
+        r"bebankan\s+pada\s+dipa.*ba\s*015.*kpp\s+pratama\s+jakarta\s+duren\s+sawit",
+        re.IGNORECASE | re.DOTALL
+    )
+    
+    # Normalisasi spasi teks full untuk mencakup teks yang terpotong enter/spasi ganda
+    normalized_text = re.sub(r"\s+", " ", text_full)
+    
+    if dipa_pattern.search(normalized_text):
+        status_dipa = "Ada (DIPA BA 015 KPP Pratama Jakarta Duren Sawit)"
+    else:
+        status_dipa = "Tidak Ada"
+
     return {
         "Nama File": pdf_file.name,
         "Nomor ST": nomor_st,        
@@ -138,7 +153,8 @@ def extract_surat_tugas_data(pdf_file):
         "Tempat": tempat,
         "Agenda": agenda,
         "Tanggal Surat": tanggal_surat,
-        "Jumlah Orang": jumlah_orang,  # Kolom Baru
+        "Jumlah Orang": jumlah_orang,
+        "Pembebanan DIPA": status_dipa,  # Kolom Validasi Baru di Akhir
     }
 
 
