@@ -4,10 +4,12 @@ import pdfplumber
 import pandas as pd
 import streamlit as st
 
+MAX_PESERTA = 8
+
 
 def extract_nama_peserta_st(text_by_lines):
     """
-    Mengekstrak daftar nama peserta ST saja dari blok:
+    Mengekstrak daftar nama peserta ST dari blok:
     nama/NIP, pangkat/golongan, jabatan, unit kerja
     """
     nama_list = []
@@ -23,7 +25,7 @@ def extract_nama_peserta_st(text_by_lines):
 
     blok_peserta = blok_peserta_match.group(0)
 
-    # Tangkap nilai setelah 'nama/NIP :' sampai sebelum tanda '/' (NIP) atau ganti baris
+    # Tangkap teks setelah 'nama/NIP :' sampai sebelum '/' (NIP) atau akhir baris
     pattern = re.compile(
         r"nama\s*/\s*NIP\s*:\s*([^/\n\r]+)",
         re.IGNORECASE,
@@ -165,11 +167,11 @@ def extract_surat_tugas_data(pdf_file):
     )
 
     # -------------------------------------------------------------
-    # 8. VALIDASI PEMBEBANAN DIPA (KOLOM TERAKHIR UTAMA)
+    # 8. VALIDASI PEMBEBANAN DIPA
     # -------------------------------------------------------------
     dipa_pattern = re.compile(
         r"bebankan\s+pada\s+dipa.*ba\s*015.*kpp\s+pratama\s+jakarta\s+duren\s+sawit",
-        re.IGNORECASE | re.DOTALL
+        re.IGNORECASE | re.DOTALL,
     )
     normalized_text = re.sub(r"\s+", " ", text_full)
 
@@ -192,10 +194,15 @@ def extract_surat_tugas_data(pdf_file):
     }
 
     # -------------------------------------------------------------
-    # 9. TAMBAHKAN KOLOM NAMA PESERTA DI AKHIR
+    # 9. TAMBAHKAN KOLOM NAMA PESERTA 1 s.d. MAX_PESERTA DI AKHIR
     # -------------------------------------------------------------
-    for idx, nama in enumerate(daftar_nama_peserta, start=1):
-        result[f"Peserta {idx} - Nama"] = nama
+    total_slot = max(MAX_PESERTA, len(daftar_nama_peserta))
+    for idx in range(1, total_slot + 1):
+        result[f"Peserta {idx} - Nama"] = (
+            daftar_nama_peserta[idx - 1]
+            if idx <= len(daftar_nama_peserta)
+            else "-"
+        )
 
     return result
 
