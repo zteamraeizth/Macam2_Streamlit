@@ -5,14 +5,13 @@ import pandas as pd
 import streamlit as st
 
 
-def extract_peserta_st(text_by_lines):
+def extract_nama_peserta_st(text_by_lines):
     """
-    Mengekstrak daftar peserta ST berdasarkan blok:
+    Mengekstrak daftar nama peserta ST saja dari blok:
     nama/NIP, pangkat/golongan, jabatan, unit kerja
     """
-    peserta_list = []
+    nama_list = []
 
-    # Potong teks hanya pada bagian daftar peserta (sebelum "untuk melaksanakan tugas")
     blok_peserta_match = re.search(
         r"(?:nama\s*/\s*NIP.*?)(?=\s*untuk melaksanakan tugas|\s*hari\s*[/:\s]*tanggal|$)",
         text_by_lines,
@@ -20,46 +19,22 @@ def extract_peserta_st(text_by_lines):
     )
 
     if not blok_peserta_match:
-        return peserta_list
+        return nama_list
 
     blok_peserta = blok_peserta_match.group(0)
 
-    # Pola regex untuk menangkap tiap blok peserta
+    # Tangkap nilai setelah 'nama/NIP :' sampai sebelum tanda '/' (NIP) atau ganti baris
     pattern = re.compile(
-        r"nama\s*/\s*NIP\s*:\s*(?P<nama_nip>[^\n]+)\s*"
-        r"pangkat\s*/\s*golongan\s*:\s*(?P<pangkat_gol>[^\n]+)\s*"
-        r"jabatan\s*:\s*(?P<jabatan>[^\n]+)\s*"
-        r"unit\s*kerja\s*:\s*(?P<unit_kerja>[^\n]+)",
+        r"nama\s*/\s*NIP\s*:\s*([^/\n\r]+)",
         re.IGNORECASE,
     )
 
     for match in pattern.finditer(blok_peserta):
-        nama_nip_raw = match.group("nama_nip").strip()
-        pangkat_gol_raw = match.group("pangkat_gol").strip()
-        jabatan = re.sub(r"\s+", " ", match.group("jabatan").strip())
-        unit_kerja = re.sub(r"\s+", " ", match.group("unit_kerja").strip())
+        nama_bersih = re.sub(r"\s+", " ", match.group(1).strip())
+        if nama_bersih:
+            nama_list.append(nama_bersih)
 
-        # Pisahkan Nama dan NIP berdasarkan tanda '/'
-        if "/" in nama_nip_raw:
-            nama_part, nip_part = nama_nip_raw.split("/", 1)
-            nama = re.sub(r"\s+", " ", nama_part.strip())
-            nip = re.sub(r"\s+", " ", nip_part.strip())
-        else:
-            nama = nama_nip_raw
-            nip = "-"
-
-        # Rapikan spasi di sekitar tanda '/' pada Pangkat/Golongan
-        pangkat_gol = re.sub(r"\s*/\s*", " / ", pangkat_gol_raw)
-
-        peserta_list.append({
-            "Nama": nama,
-            "NIP": nip,
-            "Pangkat/Golongan": pangkat_gol,
-            "Jabatan": jabatan,
-            "Unit Kerja": unit_kerja,
-        })
-
-    return peserta_list
+    return nama_list
 
 
 def extract_surat_tugas_data(pdf_file):
@@ -74,6 +49,7 @@ def extract_surat_tugas_data(pdf_file):
         st.error(f"Gagal membaca file {pdf_file.name}: {e}")
         return None
 
+    # Bersihkan spasi horizontal berlebih tanpa merusak baris baru terlebih dahulu
     clean_lines = [
         line.strip() for line in text_full.split("\n") if line.strip()
     ]
@@ -100,17 +76,18 @@ def extract_surat_tugas_data(pdf_file):
             nomor_st = re.sub(r"\s+", "", fallback_match.group(1))
 
     # -------------------------------------------------------------
-    # 2. DATA PESERTA & JUMLAH ORANG
+    # 2. NAMA PESERTA & JUMLAH ORANG / PERSONEL
     # -------------------------------------------------------------
-    daftar_peserta = extract_peserta_st(text_by_lines)
-    
-    if daftar_peserta:
-        jumlah_orang = len(daftar_peserta)
+    daftar_nama_peserta = extract_nama_peserta_st(text_by_lines)
+
+    if daftar_nama_peserta:
+        jumlah_orang = len(daftar_nama_peserta)
     else:
         nama_nip_matches = re.findall(
             r"nama\s*/\s*NIP", text_by_lines, re.IGNORECASE
         )
         jumlah_orang = len(nama_nip_matches)
+
         if jumlah_orang == 0:
             nip_matches = re.findall(r"\b\d{8}\s?\d{6}\s?\d{1}\s?\d{3}\b", text_by_lines)
             jumlah_orang = len(nip_matches) if len(nip_matches) > 0 else "-"
@@ -188,23 +165,22 @@ def extract_surat_tugas_data(pdf_file):
     )
 
     # -------------------------------------------------------------
-    # 8. VALIDASI PEMBEBANAN DIPA
+    # 8. VALIDASI PEMBEBANAN DIPA (KOLOM TERAKHIR UTAMA)
     # -------------------------------------------------------------
     dipa_pattern = re.compile(
         r"bebankan\s+pada\s+dipa.*ba\s*015.*kpp\s+pratama\s+jakarta\s+duren\s+sawit",
         re.IGNORECASE | re.DOTALL
     )
     normalized_text = re.sub(r"\s+", " ", text_full)
-    
+
     if dipa_pattern.search(normalized_text):
         status_dipa = "Ada (DIPA BA 015 KPP Pratama Jakarta Duren Sawit)"
     else:
         status_dipa = "Tidak Ada"
 
-    # Dictionary dasar
     result = {
         "Nama File": pdf_file.name,
-        "Nomor ST": nomor_st,        
+        "Nomor ST": nomor_st,
         "Hari": hari,
         "Tanggal Pelaksanaan": tanggal,
         "Waktu": waktu,
@@ -216,14 +192,10 @@ def extract_surat_tugas_data(pdf_file):
     }
 
     # -------------------------------------------------------------
-    # 9. TAMBAHKAN KOLOM PESERTA DI AKHIR (DINAMIS)
+    # 9. TAMBAHKAN KOLOM NAMA PESERTA DI AKHIR
     # -------------------------------------------------------------
-    for idx, p in enumerate(daftar_peserta, start=1):
-        result[f"Peserta {idx} - Nama"] = p["Nama"]
-        result[f"Peserta {idx} - NIP"] = p["NIP"]
-        result[f"Peserta {idx} - Pangkat/Golongan"] = p["Pangkat/Golongan"]
-        result[f"Peserta {idx} - Jabatan"] = p["Jabatan"]
-        result[f"Peserta {idx} - Unit Kerja"] = p["Unit Kerja"]
+    for idx, nama in enumerate(daftar_nama_peserta, start=1):
+        result[f"Peserta {idx} - Nama"] = nama
 
     return result
 
@@ -233,7 +205,7 @@ st.set_page_config(page_title="Ekstraktor Data Surat Tugas", layout="wide")
 
 st.title("📄 Ekstraktor Data Surat Tugas (Batch PDF Processing)")
 st.write(
-    "Unggah beberapa file Surat Tugas (PDF) untuk mengekstrak data utama beserta detail peserta secara otomatis ke dalam format tabel/Excel."
+    "Unggah beberapa file Surat Tugas (PDF) untuk mengekstrak data utama beserta nama peserta secara otomatis ke dalam format tabel/Excel."
 )
 
 uploaded_files = st.file_uploader(
@@ -252,7 +224,6 @@ if uploaded_files:
                 data_list.append(res)
 
     if data_list:
-        # Fillna("-") memastikan file yang pesertanya lebih sedikit terisi "-" pada kolom peserta berikutnya
         df = pd.DataFrame(data_list).fillna("-")
 
         st.subheader(f"Hasil Ekstraksi ({len(data_list)} File)")
